@@ -3,16 +3,16 @@ import type { Mode } from '../core/types';
 
 const MODES: { id: Mode; title: string; description: string }[] = [
   {
-    id: 'general-election',
-    title: 'General Election compatible householding',
-    description:
-      'For candidate mail delivered by Royal Mail. Everyone is named in full, as Royal Mail requires: “Chris Northwood and Meg Northwood”.',
-  },
-  {
     id: 'everyday',
     title: 'Everyday exporting',
     description:
       'For leaflets and letters you deliver yourselves. Names are shortened (“Chris & Meg Northwood”) and letters are sorted by walk, then polling number.',
+  },
+  {
+    id: 'general-election',
+    title: 'General Election compatible householding',
+    description:
+      'For candidate mail delivered by Royal Mail. Everyone is named in full, as Royal Mail requires: “Chris Northwood and Meg Northwood”.',
   },
 ];
 

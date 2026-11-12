@@ -12,7 +12,11 @@ import { StepIndicator, STEPS, type StepId } from './StepIndicator';
 export function App() {
   const [step, setStep] = useState<StepId>('mode');
   const [parsed, setParsed] = useState<ParsedExport | null>(null);
-  const [options, setOptions] = useState<HouseholdOptions>(DEFAULT_OPTIONS);
+  // Everyday exporting is listed first and chosen by default; General Election is seasonal.
+  const [options, setOptions] = useState<HouseholdOptions>({
+    ...DEFAULT_OPTIONS,
+    mode: 'everyday',
+  });
   const mainRef = useRef<HTMLElement>(null);
 
   // Move focus to the new step's heading so screen readers announce it, and name the step in
