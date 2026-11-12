@@ -135,3 +135,16 @@ describe('fillWalks', () => {
     expect(result.electors.map((e) => e.electorNumber)).toEqual(['3', '1', '2']);
   });
 });
+
+describe('fillWalks keeps housemates together', () => {
+  it('EV-6: gives everyone at an address the walk guessed for the first of them', () => {
+    // 2 Elm St (numbers 11 and 19) has no walk; 11 is nearer North, 19 nearer South.
+    const electors = district(
+      ['10', 'North', '1 A St'],
+      ['11', '', '2 Elm St'],
+      ['19', '', '2 Elm St'],
+      ['20', 'South', '4 B St'],
+    );
+    expect(walksOf(electors)).toEqual(['North', 'North', 'North', 'South']);
+  });
+});

@@ -10,6 +10,7 @@ import {
 } from './names';
 import { salutation } from './salutation';
 import type { Address, Elector, Mode } from './types';
+import { compareText } from './compare';
 import { fillWalks } from './walks';
 
 /** Large shared house thresholds (HH-3). Change here and in docs/rules.md together. */
@@ -92,8 +93,8 @@ function householdKey(e: Elector): string {
 /** HH-4: surname, then first name, then file order. */
 function byName(a: Elector, b: Elector): number {
   return (
-    fold(a.lastName).localeCompare(fold(b.lastName), 'en-GB') ||
-    fold(a.firstName).localeCompare(fold(b.firstName), 'en-GB') ||
+    compareText(fold(a.lastName), fold(b.lastName)) ||
+    compareText(fold(a.firstName), fold(b.firstName)) ||
     a.row - b.row
   );
 }

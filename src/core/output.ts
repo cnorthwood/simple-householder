@@ -1,4 +1,5 @@
 import type { AttentionReason, HouseholdResult, ItemType, MailItem } from './household';
+import { compareNatural } from './compare';
 import { comparePolling, formatElectorNumber, pollingKey } from './walks';
 import type { ParsedExport } from './parseExport';
 import type { Address, Elector, Mode } from './types';
@@ -37,8 +38,7 @@ export function addressLines(a: Address): [string, string, string] {
   return [l1, l2, l3];
 }
 
-const compare = (a: string, b: string) =>
-  a.localeCompare(b, 'en-GB', { numeric: true, sensitivity: 'base' });
+const compare = compareNatural;
 
 /** Postcode, then address (natural order), then addressee (OUT-4). */
 export function sortItems(items: readonly MailItem[]): MailItem[] {
@@ -78,19 +78,21 @@ export function collapse(values: readonly string[]): string {
   return [...new Set(values.filter(Boolean))].join('; ');
 }
 
-/** The earliest polling number on the letter decides its place in the walk (EV-11). */
-function firstElector(item: MailItem): Elector {
-  return [...item.electors].sort(byPolling)[0] as Elector;
-}
-
 /** Walk (natural order), then earliest polling number, then addressee (EV-11). */
 export function sortByWalk(items: readonly MailItem[]): MailItem[] {
-  const keyed = items.map((item) => ({ item, walk: walkOf(item), first: firstElector(item) }));
+  const keyed = items.map((item) => {
+    // The earliest polling number on the letter decides its place in the walk.
+    const first = item.electors
+      .map((e) => ({ e, key: pollingKey(e) }))
+      .reduce((a, b) => (comparePolling(b.key, a.key) < 0 ? b : a));
+    return { item, walk: walkOf(item), key: first.key, row: first.e.row };
+  });
   return keyed
     .sort(
       (a, b) =>
         compare(a.walk, b.walk) ||
-        byPolling(a.first, b.first) ||
+        comparePolling(a.key, b.key) ||
+        a.row - b.row ||
         compare(a.item.addressee, b.item.addressee),
     )
     .map((k) => k.item);

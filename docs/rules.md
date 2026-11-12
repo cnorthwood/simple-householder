@@ -180,6 +180,8 @@ custom export, checked by aggregate counts only.
   - if they disagree, use the side on the same street (the address with house and flat numbers
     removed, plus postcode); if both or neither are on the same street, use the nearer polling
     number, and the earlier one if they're equally near.
+    Everyone at one address takes the walk guessed for the first of them in polling order, so a
+    letter never mixes walks.
 - **EV-8** _(Decision; Export: 6 of 50 districts had no walks)_ In a polling district with no
   walks at all, the walk is the district code followed by "(no walk)", e.g. `9A (no walk)`.
 - **EV-9** _(Decision)_ A guessed walk goes in the `Default Walk` column like any other. The summary

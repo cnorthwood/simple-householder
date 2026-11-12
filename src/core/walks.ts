@@ -1,3 +1,4 @@
+import { compareNatural } from './compare';
 import type { Address, Elector } from './types';
 
 /** A polling number split for sorting: district, then number, then suffix (EV-10). */
@@ -17,11 +18,8 @@ export function pollingKey(e: Pick<Elector, 'pollingDistrict' | 'electorNumber'>
   };
 }
 
-const naturally = (a: string, b: string) =>
-  a.localeCompare(b, 'en-GB', { numeric: true, sensitivity: 'base' });
-
 export function comparePolling(a: PollingKey, b: PollingKey): number {
-  return naturally(a.district, b.district) || a.number - b.number || a.suffix - b.suffix;
+  return compareNatural(a.district, b.district) || a.number - b.number || a.suffix - b.suffix;
 }
 
 /** "123" or "123/1", as shown in the output. */
@@ -81,8 +79,10 @@ export function fillWalks(electors: readonly Elector[]): WalkResult {
     else districts.set(e.pollingDistrict, [e]);
   }
   for (const [district, list] of districts) {
+    const keys = new Map(list.map((e) => [e, pollingKey(e)]));
     const ordered = [...list].sort(
-      (a, b) => comparePolling(pollingKey(a), pollingKey(b)) || a.row - b.row,
+      (a, b) =>
+        comparePolling(keys.get(a) as PollingKey, keys.get(b) as PollingKey) || a.row - b.row,
     );
     const known = (e: Elector) => e.walk || walks.get(e) || '';
     if (!ordered.some(known)) {
@@ -102,11 +102,14 @@ export function fillWalks(electors: readonly Elector[]): WalkResult {
       after[i] = next;
       if (known(ordered[i] as Elector)) next = ordered[i];
     }
+    // Housemates share the guess made for the first of them, so a letter never mixes walks.
+    const guessedAt = new Map<string, string>();
     ordered.forEach((e, i) => {
       if (known(e)) return;
-      const prev = before[i];
-      const following = after[i];
-      walks.set(e, chooseNeighbour(e, prev, following, known));
+      const address = addressKey(e.address);
+      const walk = guessedAt.get(address) ?? chooseNeighbour(e, before[i], after[i], known);
+      guessedAt.set(address, walk);
+      walks.set(e, walk);
     });
   }
 
