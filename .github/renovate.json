@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":dependencyDashboard", ":maintainLockFilesWeekly"],
+  "timezone": "Europe/London",
+  "schedule": ["before 9am on monday"],
+  "labels": ["dependencies"],
+  "minimumReleaseAge": "3 days",
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "description": "Batch routine updates into one PR a week. Majors stay separate so they can be checked on their own.",
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "non-major dependencies"
+    },
+    {
+      "description": "Update Playwright together: the e2e Docker image tag is read from package-lock.json, so the npm packages and image must move in step.",
+      "matchPackageNames": ["@playwright/test", "playwright", "playwright-core"],
+      "groupName": "Playwright"
+    },
+    {
+      "description": "Group the linting toolchain, as typescript-eslint must support the TypeScript version.",
+      "matchPackageNames": ["typescript", "typescript-eslint", "eslint", "@eslint/**"],
+      "groupName": "TypeScript and ESLint"
+    },
+    {
+      "description": "Keep GitHub Actions on pinned versions, updated together.",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
+    }
+  ]
+}
