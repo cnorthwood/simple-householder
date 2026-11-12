@@ -120,10 +120,12 @@ Sorting (Electionsort/Streetsort, RM p15–18) is done by the printer.
 
 ## Protecting the output
 
-- **PW-1** _(Decision)_ The output is only offered as an AES-256 encrypted zip containing the
-  printer CSV, the summary and (if not empty) the needs-attention CSV.
+- **PW-1** _(Decision)_ The output is only offered as an AES-256 encrypted zip containing
+  `addresses-for-printer.csv`, `summary.txt` and (if not empty) `needs-attention.csv`.
 - **PW-2** _(Decision)_ The password is 4 words drawn uniformly at random from the EFF large
   diceware word list (7,776 words, about 52 bits), using `crypto.getRandomValues` with rejection
-  sampling. Words are lowercase and hyphen-separated.
+  sampling. Words are lowercase and hyphen-separated. The four hyphenated words and a short list
+  of words that would look awkward in a political context (e.g. "riot", "reform", "voter") are
+  left out; see `src/core/password/password.ts`.
 - **PW-3** _(Decision)_ The password is shown on screen once and never stored. The user is told to
   send it separately from the file.

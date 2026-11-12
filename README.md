@@ -21,6 +21,11 @@ See `CLAUDE.md` for project rules and `docs/` for the plan and specification.
 
 **Never commit real voter data.** Keep exports in `private/` (gitignored).
 
+## Credits
+
+- Passwords use the [EFF Large Wordlist](https://www.eff.org/dice) by the Electronic Frontier
+  Foundation, licensed under [CC BY 3.0 US](https://creativecommons.org/licenses/by/3.0/us/).
+
 ## Licence
 
 Copyright © 2026 Chris Northwood and contributors.
