@@ -40,7 +40,7 @@ export async function fixtureZip(): Promise<Uint8Array> {
 let nextRow = 1;
 /** Build an elector for table-driven tests; only override what the test is about. */
 export function elector(
-  overrides: Partial<Elector> & { address?: Partial<Elector['address']> } = {},
+  overrides: Partial<Omit<Elector, 'address'>> & { address?: Partial<Elector['address']> } = {},
 ): Elector {
   const { address, ...rest } = overrides;
   return {
