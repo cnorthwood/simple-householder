@@ -147,4 +147,18 @@ describe('fillWalks keeps housemates together', () => {
     );
     expect(walksOf(electors)).toEqual(['North', 'North', 'North', 'South']);
   });
+
+  it('EV-6: keeps housemates together even across polling districts', () => {
+    const electors = [
+      elector({
+        pollingDistrict: '9A',
+        electorNumber: '1',
+        walk: 'North',
+        address: { line1: '1 A' },
+      }),
+      elector({ pollingDistrict: '9A', electorNumber: '2', walk: '', address: { line1: '2 B' } }),
+      elector({ pollingDistrict: '9B', electorNumber: '1', walk: '', address: { line1: '2 B' } }),
+    ];
+    expect(walksOf(electors)).toEqual(['North', 'North', 'North']);
+  });
 });

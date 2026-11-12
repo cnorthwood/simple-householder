@@ -113,11 +113,21 @@ export function fillWalks(electors: readonly Elector[]): WalkResult {
     });
   }
 
+  // Housemates share one guess even if the register puts them in different districts: the
+  // guess for whoever comes first in polling order, so a letter never mixes walks.
+  const firstGuess = new Map<string, { walk: string; key: PollingKey }>();
+  for (const [e, walk] of walks) {
+    const address = addressKey(e.address);
+    const key = pollingKey(e);
+    const current = firstGuess.get(address);
+    if (!current || comparePolling(key, current.key) < 0) firstGuess.set(address, { walk, key });
+  }
+
   let guessed = 0;
   const filled = electors.map((e) => {
     if (e.walk) return e;
     guessed++;
-    return { ...e, walk: walks.get(e) ?? '' };
+    return { ...e, walk: firstGuess.get(addressKey(e.address))?.walk ?? '' };
   });
   return { electors: filled, guessed };
 }
