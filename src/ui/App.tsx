@@ -6,7 +6,7 @@ import { DownloadStep } from './DownloadStep';
 import { ExportStep } from './ExportStep';
 import { FileStep } from './FileStep';
 import { Footer } from './Footer';
-import { StepIndicator, type StepId } from './StepIndicator';
+import { StepIndicator, STEPS, type StepId } from './StepIndicator';
 
 export function App() {
   const [step, setStep] = useState<StepId>('export');
@@ -14,9 +14,12 @@ export function App() {
   const [options, setOptions] = useState<HouseholdOptions>(DEFAULT_OPTIONS);
   const mainRef = useRef<HTMLElement>(null);
 
-  // Move focus to the new step's heading so screen readers announce it.
+  // Move focus to the new step's heading so screen readers announce it, and name the step in
+  // the page title (WCAG 2.4.2).
   useEffect(() => {
-    mainRef.current?.querySelector('h2')?.focus();
+    const heading = mainRef.current?.querySelector('h2');
+    heading?.focus();
+    document.title = `${heading?.textContent ?? STEPS.find((s) => s.id === step)?.label} – Simple Householder`;
   }, [step]);
 
   const result = useMemo(
@@ -45,6 +48,8 @@ export function App() {
         {step === 'export' && <ExportStep onNext={() => setStep('file')} />}
         {step === 'file' && (
           <FileStep
+            previous={parsed}
+            onContinue={() => setStep('check')}
             onBack={() => setStep('export')}
             onLoaded={(p) => {
               setParsed(p);

@@ -3,11 +3,14 @@ import { FriendlyError } from '../core/errors';
 import { readExportFile, type ParsedExport } from '../core/parseExport';
 
 interface Props {
+  /** The file already read, if the user came back to this step. */
+  previous: ParsedExport | null;
+  onContinue: () => void;
   onBack: () => void;
   onLoaded: (parsed: ParsedExport) => void;
 }
 
-export function FileStep({ onBack, onLoaded }: Props) {
+export function FileStep({ previous, onContinue, onBack, onLoaded }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -31,7 +34,10 @@ export function FileStep({ onBack, onLoaded }: Props) {
   return (
     <section>
       <h2 tabIndex={-1}>Choose your file</h2>
-      <p>Choose the .zip you downloaded from Connect. It stays on this computer.</p>
+      <p>
+        Choose the .zip you downloaded from Connect. It stays on this computer. Once it’s been read,
+        you’ll go straight on to check your letters.
+      </p>
       <label
         class={`dropzone${dragging ? ' dragging' : ''}`}
         onDragOver={(e) => {
@@ -61,6 +67,11 @@ export function FileStep({ onBack, onLoaded }: Props) {
         <button type="button" class="secondary" onClick={onBack}>
           Back
         </button>
+        {previous && (
+          <button type="button" class="primary" onClick={onContinue}>
+            Continue with {previous.fileName}
+          </button>
+        )}
       </div>
     </section>
   );

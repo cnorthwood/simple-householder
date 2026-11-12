@@ -1,6 +1,6 @@
 export type StepId = 'export' | 'file' | 'check' | 'download';
 
-const STEPS: { id: StepId; label: string }[] = [
+export const STEPS: { id: StepId; label: string }[] = [
   { id: 'export', label: 'Export from Connect' },
   { id: 'file', label: 'Choose your file' },
   { id: 'check', label: 'Check' },
@@ -19,9 +19,10 @@ export function StepIndicator({ current }: { current: StepId }) {
             aria-current={i === currentIndex ? 'step' : undefined}
           >
             <span class="step-number" aria-hidden="true">
-              {i + 1}
+              {i < currentIndex ? '✓' : i + 1}
             </span>
             <span class="step-label">{s.label}</span>
+            {i < currentIndex && <span class="sr-only"> (done)</span>}
           </li>
         ))}
       </ol>

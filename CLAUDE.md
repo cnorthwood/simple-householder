@@ -58,4 +58,7 @@ every `.ts`/`.tsx` edit. Fix failures before moving on.
 - TypeScript strict mode. Prefer small pure functions and explicit types at module boundaries.
 - Write tests as tables of `input → expected` cases so the rules are easy to read.
 - UI copy is British English, plain and friendly, and written for a non-technical volunteer.
+- The UI targets WCAG 2.2 AA. `e2e/accessibility.spec.ts` runs axe on every step at desktop and
+  320px widths; automated checks only catch some issues, so also check keyboard use, focus and
+  announcements by hand.
 - Commit messages are imperative and explain _why_.

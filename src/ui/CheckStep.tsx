@@ -47,20 +47,18 @@ export function CheckStep({ parsed, result, options, onOptionsChange, onBack, on
     <section>
       <h2 tabIndex={-1}>Check your letters</h2>
 
-      <div class="stats">
+      <div class="stats" aria-hidden="true">
         <div class="stat">
           <span class="stat-value">{n(summary.peopleIncluded)}</span>
           <span class="stat-label">people</span>
         </div>
-        <div class="stat stat-arrow" aria-hidden="true">
-          →
-        </div>
+        <div class="stat stat-arrow">→</div>
         <div class="stat stat-highlight">
           <span class="stat-value">{n(summary.letters)}</span>
           <span class="stat-label">letters</span>
         </div>
       </div>
-      <p class="sr-only">
+      <p class="sr-only" aria-live="polite">
         {n(summary.peopleIncluded)} people will get {n(summary.letters)} letters.
       </p>
       <ul class="facts">
@@ -117,7 +115,7 @@ export function CheckStep({ parsed, result, options, onOptionsChange, onBack, on
               : ''}
             This list is included in your download so you can fix these records in Connect.
           </p>
-          <div class="table-wrap">
+          <div class="table-wrap" tabIndex={0} role="region" aria-label="Records needing attention">
             <table>
               <thead>
                 <tr>
@@ -157,12 +155,12 @@ export function CheckStep({ parsed, result, options, onOptionsChange, onBack, on
           ))}
         </select>
       </label>
-      <p class="muted">
+      <p class="muted" aria-live="polite">
         {shown.length > PREVIEW_LIMIT
           ? `Showing the first ${PREVIEW_LIMIT} of ${n(shown.length)} letters.`
           : `${n(shown.length)} letters.`}
       </p>
-      <div class="table-wrap">
+      <div class="table-wrap" tabIndex={0} role="region" aria-label="Preview of letters">
         <table class="preview">
           <thead>
             <tr>
@@ -196,6 +194,9 @@ export function CheckStep({ parsed, result, options, onOptionsChange, onBack, on
         </table>
       </div>
 
+      {result.items.length === 0 && (
+        <p class="error">There’s nobody we can send a letter to. Please check your export.</p>
+      )}
       <div class="actions">
         <button type="button" class="secondary" onClick={onBack}>
           Back

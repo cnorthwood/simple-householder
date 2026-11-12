@@ -56,11 +56,12 @@ export function DownloadStep({ parsed, result, options, onBack, onStartAgain }: 
           {password}
         </code>
         <button type="button" class="secondary" onClick={() => void copy()}>
-          {copied ? 'Copied' : 'Copy password'}
+          Copy password
         </button>
+        <span role="status">{copied ? 'Copied' : ''}</span>
       </div>
 
-      <div class="actions">
+      <div class="actions" aria-live="polite">
         {download ? (
           <a class="button primary" href={download.url} download={download.fileName}>
             Download {download.fileName}

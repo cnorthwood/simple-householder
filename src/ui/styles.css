@@ -13,6 +13,8 @@
 
 :root {
   --democrat-orange: #ff6400;
+  /* Darker orange for thin borders, which need 3:1 contrast (WCAG 1.4.11) */
+  --orange-border: #c74e00;
   --orange-tint: #fff0e6;
   --liberty-navy: #072f5f;
   --community-magenta: #ff0075;
@@ -51,7 +53,7 @@ body {
   width: 100%;
   max-width: 52rem;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding-inline: 1rem;
 }
 
 h1,
@@ -239,7 +241,7 @@ button:disabled {
   align-items: center;
   gap: 0.25rem;
   padding: 2.5rem 1rem;
-  border: 3px dashed var(--democrat-orange);
+  border: 3px dashed var(--orange-border);
   border-radius: 10px;
   background: var(--orange-tint);
   cursor: pointer;
@@ -343,7 +345,7 @@ button:disabled {
   font: inherit;
   padding: 0.3rem 0.5rem;
   border-radius: 6px;
-  border: 2px solid var(--border);
+  border: 2px solid var(--muted);
 }
 
 .muted {
@@ -353,6 +355,8 @@ button:disabled {
 /* Tables */
 .table-wrap {
   overflow-x: auto;
+  /* Room for the focus outline, as the box is focusable so keyboards can scroll it */
+  outline-offset: -3px;
   border: 1px solid var(--border);
   border-radius: 8px;
 }

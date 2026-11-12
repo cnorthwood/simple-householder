@@ -5,23 +5,12 @@ import { expect, test, type Page } from '@playwright/test';
 import {
   TextWriter,
   Uint8ArrayReader,
-  Uint8ArrayWriter,
   ZipReader,
-  ZipWriter,
   type FileEntry,
 } from '@zip.js/zip.js/lib/zip-native.js';
+import { connectZip } from './helpers';
 
-const FIXTURE = resolve(import.meta.dirname, '../fixtures/synthetic-standard-text.tsv');
 const SINGLE_FILE = resolve(import.meta.dirname, '../dist-single/index.html');
-
-/** Build a Connect-style export: a zip holding UTF-16LE tab-separated text named .xls. */
-async function connectZip(): Promise<Buffer> {
-  const text = await readFile(FIXTURE, 'utf8');
-  const utf16 = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(text, 'utf16le')]);
-  const writer = new ZipWriter(new Uint8ArrayWriter());
-  await writer.add('StandardText20261112-1.xls', new Uint8ArrayReader(new Uint8Array(utf16)));
-  return Buffer.from(await writer.close());
-}
 
 /** Record any request that isn't for the page's own static files. */
 function watchNetwork(page: Page) {
