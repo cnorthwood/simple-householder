@@ -85,7 +85,6 @@ export function parseExportText(
         town: get('town'),
         postcode: get('postcode').toUpperCase(),
       },
-      vAddressId: get('vAddressId'),
     });
   });
 

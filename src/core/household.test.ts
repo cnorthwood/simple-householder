@@ -7,12 +7,14 @@ import type { Elector } from './types';
 const summary = (items: MailItem[]) =>
   items.map((i) => ({ type: i.type, lines: i.nameLines, salutation: i.salutation }));
 
-const people = (vAddressId: string, ...names: [string, string][]): Elector[] =>
-  names.map(([firstName, lastName]) => elector({ firstName, lastName, vAddressId }));
+const people = (line1: string, ...names: [string, string][]): Elector[] =>
+  names.map(([firstName, lastName]) => elector({ firstName, lastName, address: { line1 } }));
 
 describe('household', () => {
-  it('HH-1, NM-1: puts everyone at one VAddressID on one letter, each named in full', () => {
-    const { items } = household(people('1', ['Meg', 'Northwood'], ['Chris', 'Northwood']));
+  it('HH-1, NM-1: puts everyone at one address on one letter, each named in full', () => {
+    const { items } = household(
+      people('1 Test Street', ['Meg', 'Northwood'], ['Chris', 'Northwood']),
+    );
     expect(summary(items)).toEqual([
       {
         type: 'Household',
@@ -22,20 +24,27 @@ describe('household', () => {
     ]);
   });
 
-  it('HH-1: keeps different VAddressIDs apart even at the same street address', () => {
+  it('HH-1: groups by the whole address, ignoring case and spacing', () => {
     const { items } = household([
-      elector({ firstName: 'Tom', vAddressId: '1', address: { line1: '20 Larkspur Road' } }),
-      elector({ firstName: 'Aoife', vAddressId: '2', address: { line1: '20 Larkspur Road' } }),
-    ]);
-    expect(items.map((i) => i.type)).toEqual(['Single', 'Single']);
-  });
-
-  it('HH-1: groups by address when VAddressID is blank, ignoring case and spacing', () => {
-    const { items } = household([
-      elector({ firstName: 'Sam', vAddressId: '', address: { line1: '22 Mill Lane' } }),
-      elector({ firstName: 'Alex', vAddressId: '', address: { line1: '22 MILL LANE' } }),
+      elector({ firstName: 'Sam', address: { line1: '22 Mill Lane', postcode: 'M99 3CC' } }),
+      elector({ firstName: 'Alex', address: { line1: '22  MILL LANE', postcode: 'm99 3cc' } }),
     ]);
     expect(items).toHaveLength(1);
+  });
+
+  it.each([
+    ['address line 1', { line1: 'Flat 2' }],
+    ['address line 2', { line2: '22 Larkspur Road' }],
+    ['address line 3', { line3: 'Little Hamlet' }],
+    ['town', { town: 'Othertown' }],
+    ['postcode', { postcode: 'M99 9ZZ' }],
+  ])('HH-1: keeps people apart when their %s differs', (_, difference) => {
+    const base = { line1: 'Flat 1', line2: '20 Larkspur Road' };
+    const { items } = household([
+      elector({ firstName: 'Tom', address: base }),
+      elector({ firstName: 'Aoife', address: { ...base, ...difference } }),
+    ]);
+    expect(items.map((i) => i.type)).toEqual(['Single', 'Single']);
   });
 
   it('HH-2: takes the address from the first elector in file order', () => {
@@ -48,20 +57,20 @@ describe('household', () => {
 
   it('HH-4: orders by surname, then first name, then file order', () => {
     const { items } = household(
-      people('1', ['Chris', 'Northwood'], ['Ann', 'Bloggs'], ['Meg', 'Northwood']),
+      people('1 Test Street', ['Chris', 'Northwood'], ['Ann', 'Bloggs'], ['Meg', 'Northwood']),
     );
     expect(items[0]?.addressee).toBe('Ann Bloggs, Chris Northwood and Meg Northwood');
   });
 
   it('NM-1: lists two electors with identical names both', () => {
-    const { items } = household(people('1', ['John', 'Smith'], ['John', 'Smith']));
+    const { items } = household(people('1 Test Street', ['John', 'Smith'], ['John', 'Smith']));
     expect(items[0]?.addressee).toBe('John Smith and John Smith');
     expect(items[0]?.salutation).toBe('Hello John');
   });
 
   describe('large shared houses (HH-3)', () => {
     const shared = people(
-      '1',
+      '1 Test Street',
       ['Harry', 'Wilson'],
       ['Wei', 'Zhang'],
       ['Marta', 'Kowalski'],
@@ -107,7 +116,7 @@ describe('household', () => {
     it('NM-5: switches every name on the letter to initials when full names don’t fit', () => {
       const { items } = household(
         people(
-          '1',
+          '1 Test Street',
           ['Chukwuemeka', 'Okafor'],
           ['Adaeze', 'Okafor'],
           ['Obinna', 'Okafor'],
@@ -207,7 +216,7 @@ describe('performance', () => {
       elector({
         firstName: `First${i % 97}`,
         lastName: `Last${Math.floor(i / 2) % 89}`,
-        vAddressId: String(Math.floor(i / 2)),
+        address: { line1: `${Math.floor(i / 2)} Long Road` },
       }),
     );
     const start = performance.now();

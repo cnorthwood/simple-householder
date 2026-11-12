@@ -13,8 +13,7 @@ export type Field =
   | 'line2'
   | 'line3'
   | 'town'
-  | 'postcode'
-  | 'vAddressId';
+  | 'postcode';
 
 export interface ColumnSpec {
   /** Header names that map to this field, matched with {@link normaliseHeader}. */
@@ -46,5 +45,4 @@ export const STANDARD_TEXT: ColumnProfile = {
   line3: { headers: ['AddressLine3'], required: false, label: 'AddressLine3' },
   town: { headers: ['Post Town'], required: true, label: 'Post Town' },
   postcode: { headers: ['Post Code'], required: true, label: 'Post Code' },
-  vAddressId: { headers: ['VAddressID'], required: true, label: 'VAddressID' },
 };

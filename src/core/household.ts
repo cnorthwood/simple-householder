@@ -62,13 +62,15 @@ function exclusionReason(e: Elector): AttentionReason | null {
   return null;
 }
 
-const fold = (s: string) => s.toLocaleLowerCase('en-GB');
+const fold = (s: string) => s.toLocaleLowerCase('en-GB').replace(/\s+/g, ' ').trim();
 
-/** HH-1: VAddressID, or the normalised registered address if it's blank. */
+/**
+ * HH-1: the whole registered address, ignoring case and spacing. Not VAddressID, which Connect
+ * gives each person rather than each property.
+ */
 function householdKey(e: Elector): string {
-  if (e.vAddressId) return `id:${e.vAddressId}`;
   const a = e.address;
-  return `addr:${[a.line1, a.line2, a.line3, a.town, a.postcode].map(fold).join('|')}`;
+  return [a.line1, a.line2, a.line3, a.town, a.postcode].map(fold).join('|');
 }
 
 /** HH-4: surname, then first name, then file order. */

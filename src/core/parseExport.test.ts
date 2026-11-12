@@ -4,7 +4,7 @@ import { parseExportText, readExportFile } from './parseExport';
 import { fixtureText, fixtureZip, toUtf16le, zipFiles } from './testing/fixtures';
 
 const HEADER =
-  'Voter File VANID\tLastName\tFirstName\tSuffix\tAddressLine1\tAddressLine2\tAddressLine3\tPost Town\tPost Code\tVAddressID';
+  'Voter File VANID\tLastName\tFirstName\tSuffix\tAddressLine1\tAddressLine2\tAddressLine3\tPost Town\tPost Code';
 
 describe('parseExportText', () => {
   it('reads every person from the synthetic Standard Text fixture, removing duplicates (IN-6)', () => {
@@ -28,26 +28,25 @@ describe('parseExportText', () => {
         town: 'Anytown',
         postcode: 'M99 1AA',
       },
-      vAddressId: '5001',
     });
   });
 
   it('matches headers ignoring case, spaces and underscores (IN-4)', () => {
     const text =
-      'lastname\tFIRST_NAME\taddress line1\tPOSTTOWN\tpost_code\tv address id\nSmith\tJo\t1 A St\tAnytown\tm99 1aa\t7';
+      'lastname\tFIRST_NAME\taddress line1\tPOSTTOWN\tpost_code\nSmith\tJo\t1 A St\tAnytown\tm99 1aa';
     const [e] = parseExportText(text, 'x.txt').electors;
-    expect(e).toMatchObject({ firstName: 'Jo', lastName: 'Smith', vAddressId: '7' });
+    expect(e).toMatchObject({ firstName: 'Jo', lastName: 'Smith' });
     expect(e?.address.postcode).toBe('M99 1AA');
   });
 
   it('reads a preferred name column when present (SA-2)', () => {
-    const text = `${HEADER}\tPreferredName\n1\tSmith\tElizabeth\t\t1 A St\t\t\tAnytown\tM99 1AA\t7\tLiz`;
+    const text = `${HEADER}\tPreferredName\n1\tSmith\tElizabeth\t\t1 A St\t\t\tAnytown\tM99 1AA\tLiz`;
     expect(parseExportText(text, 'x.txt').electors[0]?.preferredName).toBe('Liz');
   });
 
   it('names every missing required column (IN-4)', () => {
     expect(() => parseExportText('LastName\tFirstName\nSmith\tJo', 'x.xls')).toThrow(
-      /missing some columns we need: AddressLine1, Post Town, Post Code, VAddressID/,
+      /missing some columns we need: AddressLine1, Post Town, Post Code/,
     );
   });
 

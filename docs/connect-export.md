@@ -33,9 +33,10 @@ Header names are matched ignoring case, spaces and underscores (rule IN-4).
 | `AddressLine3`             | Registered address                                                            | No       |
 | `Post Town`                | Registered address                                                            | Yes      |
 | `Post Code`                | Registered address                                                            | Yes      |
-| `VAddressID`               | Household key (HH-1)                                                          | Yes      |
 
-Ignored columns in Standard Text: `PreferredEmail`, `Pref Phone`, and the mailing address
-(`mAddressLine1–3`, `mCity`, `mPostalCode`).
+Ignored columns in Standard Text: `PreferredEmail`, `Pref Phone`, the mailing address
+(`mAddressLine1–3`, `mCity`, `mPostalCode`) and `VAddressID`. Despite its name, `VAddressID` is
+different for every person, even people at the same address (checked on a whole-constituency
+export: 94,566 people, 94,566 different IDs), so it can't be used to find households.
 
 `fixtures/` holds synthetic files in this format. Never add a real export.

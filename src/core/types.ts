@@ -16,5 +16,4 @@ export interface Elector {
   /** Empty when the export has no preferred-name column or it's blank. */
   preferredName: string;
   address: Address;
-  vAddressId: string;
 }

@@ -57,9 +57,10 @@ Sorting (Electionsort/Streetsort, RM p15–18) is done by the printer.
 
 ## Householding
 
-- **HH-1** _(Decision)_ Electors are grouped by `VAddressID`. An elector with a blank `VAddressID`
-  is grouped by the normalised registered address instead: address lines, town and postcode,
-  compared case-insensitively with whitespace collapsed.
+- **HH-1** _(Decision)_ Electors are grouped by their whole registered address: all three address
+  lines, town and postcode, compared case-insensitively with whitespace collapsed. Every part must
+  match, so flats with the same building and postcode stay separate. `VAddressID` isn't used: Connect
+  gives each person a different one, even at the same address.
 - **HH-2** _(Decision)_ A group's address is taken from its first elector in file order.
 - **HH-3** _(Decision: large shared houses)_ If a group has **6 or more electors** and **3 or more
   different surnames** (compared case-insensitively), it isn't householded. Each elector gets their

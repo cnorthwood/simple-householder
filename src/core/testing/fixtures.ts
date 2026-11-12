@@ -49,7 +49,6 @@ export function elector(
     lastName: 'Example',
     suffix: '',
     preferredName: '',
-    vAddressId: '1',
     ...rest,
     address: {
       line1: '1 Test Street',
