@@ -135,3 +135,63 @@ Sorting (Electionsort/Streetsort, RM p15–18) is done by the printer.
   left out; see `src/core/password/password.ts`.
 - **PW-3** _(Decision)_ The password is shown on screen once and never stored. The user is told to
   send it separately from the file.
+
+## Everyday exporting mode
+
+A second mode for leaflets and letters delivered by hand, walk by walk. It isn't Royal Mail candidate
+mail, so names can be shortened. Everything above applies unless a rule here replaces it. The
+first mode is called "General Election compatible householding".
+
+**Sources:** _Decision_ as above, and **Export**, which means what we saw in a whole-constituency
+custom export, checked by aggregate counts only.
+
+### Input
+
+- **EV-1** _(Decision; Export)_ The export is Standard Text with the custom fields Voter File
+  VANID, Name, Postal Address, Voting Address (Concatenated), Default Walk and Polling Number.
+  Connect splits these into the Standard Text name and address columns plus `DefaultWalkName`,
+  `PollingDistrictCode` and `ElectorNumberWithSuffix`, which are all required. If they're missing,
+  the error tells the user to follow the everyday export steps.
+- **EV-2** _(Decision)_ Columns we don't recognise are kept and copied to the output. Columns that
+  come with the export format but aren't useful are dropped: `MiddleName`, `VAddressID` and the
+  postal address (`mAddressLine1–3`, `mCity`, `mPostalCode`). On the whole-constituency export the
+  postal address matched the voting address for every person.
+
+### Addressee names
+
+- **EV-3** _(Decision)_ People who share a surname are joined under it: "Chris & Meg Northwood".
+  First names within a surname group are joined as "A", "A & B", "A, B & C". Surname groups are
+  joined as in NM-3: "Chris & Meg Northwood and Sam Okafor". Never "The Residents" or "The
+  Occupier".
+- **EV-4** _(Decision)_ Lines break between first names or between surname groups, never between a
+  first name and the surname it belongs to.
+- **EV-5** _(Decision)_ If it doesn't fit in the envelope window (NM-4), try in order:
+  1. Initials, grouped the same way: "C & M Northwood".
+  2. "The Northwood Family", only when everyone at the address shares one surname.
+  3. Split across several letters, as in NM-6, using the grouped full names.
+
+### Default walk
+
+- **EV-6** _(Decision; Export: no address had people in two different walks)_ A person with a
+  blank `DefaultWalkName` takes the walk of someone at the same address.
+- **EV-7** _(Decision; Export)_ Otherwise, look at the nearest people with a walk before and after
+  them in polling-number order, in the same polling district (walks never cross districts):
+  - if both sides agree, or only one side has a walk, use that walk;
+  - if they disagree, use the side on the same street (the address with house and flat numbers
+    removed, plus postcode); if both or neither are on the same street, use the nearer polling
+    number, and the earlier one if they're equally near.
+- **EV-8** _(Decision; Export: 6 of 50 districts had no walks)_ In a polling district with no
+  walks at all, the walk is the district code followed by "(no walk)", e.g. `9A (no walk)`.
+- **EV-9** _(Decision)_ A guessed walk goes in the `Default Walk` column like any other. The summary
+  says how many were guessed.
+
+### Output
+
+- **EV-10** _(Decision)_ Polling numbers are compared as district, then number, then suffix, so
+  `123` comes before `123/1`, then `123/2`, then `124`.
+- **EV-11** _(Decision)_ Letters are sorted by walk (natural order), then by the earliest polling
+  number on the letter.
+- **EV-12** _(Decision)_ The CSV has the columns of OUT-1, then
+  `Default Walk`, `Polling District` and `Elector Numbers` (every number on the letter, in order,
+  joined with "; "), then the kept columns from EV-2. A kept column with the same value for
+  everyone on the letter shows it once; otherwise the different values are joined with "; ".
