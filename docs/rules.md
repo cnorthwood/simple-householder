@@ -37,11 +37,14 @@ Sorting (Electionsort/Streetsort, RM p15–18) is done by the printer.
 - **IN-3** _(Decision)_ Fields are separated by tabs and rows by CRLF or LF. Blank rows are
   ignored. A field wrapped as `="…"` (Excel text protection) is unwrapped. A field wrapped in
   double quotes is unquoted, with `""` becoming `"`.
+- **IN-7** _(Decision)_ A file that has been opened and saved again in Excel (a real `.xls`/`.xlsx`
+  workbook, or a comma-separated CSV) is rejected with a message asking for the original Connect
+  download. We don't try to read it, because Excel may have changed the data.
 - **IN-4** _(Decision)_ Header names are matched ignoring case, spaces and underscores. The
   required and optional columns are listed in [`connect-export.md`](connect-export.md). Any missing
   required column is reported, by name, in plain English.
 - **IN-5** _(Decision)_ All values are trimmed, with internal runs of whitespace collapsed to one
-  space.
+  space. Postcodes are upper-cased.
 - **IN-6** _(Decision)_ If a `Voter File VANID` column is present, repeated VANIDs are kept once
   (the first) and counted in the summary. VANIDs are never output.
 

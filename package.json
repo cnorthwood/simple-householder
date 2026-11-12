@@ -29,6 +29,7 @@
     "pre-commit": "npm run check:data -- --staged"
   },
   "dependencies": {
+    "@zip.js/zip.js": "^2.24.0",
     "preact": "^11.2.0"
   },
   "devDependencies": {
