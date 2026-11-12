@@ -1,0 +1,41 @@
+# ---------------------------------------------------------------
+# NEVER COMMIT VOTER DATA.
+# Connect exports contain personal data. Anything that could be an
+# export is ignored everywhere except fixtures/, which must only hold
+# synthetic (made-up) data. scripts/check-no-voter-data.mjs enforces
+# this in the pre-commit hook and CI.
+# ---------------------------------------------------------------
+*.zip
+*.xls
+*.xlsx
+*.csv
+*.tsv
+*.txt
+!fixtures/**/*.csv
+!fixtures/**/*.tsv
+!fixtures/**/*.txt
+!fixtures/**/*.xls
+
+# Local-only working area for real exports and reference docs
+private/
+
+# Reference PDFs (e.g. Royal Mail guides) are linked from docs, not committed
+*.pdf
+
+# Build / tooling
+node_modules/
+dist/
+dist-single/
+coverage/
+playwright-report/
+test-results/
+*.log
+.DS_Store
+
+# Editors
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Claude Code local overrides
+.claude/settings.local.json

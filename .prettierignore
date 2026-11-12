@@ -1,0 +1,7 @@
+dist
+dist-single
+coverage
+playwright-report
+test-results
+package-lock.json
+private

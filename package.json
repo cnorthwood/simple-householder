@@ -1,0 +1,50 @@
+{
+  "name": "simple-householder",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Household a Connect (NGP VAN) export into Royal Mail-compliant addressed candidate mail, entirely in the browser.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "build:single": "tsc --noEmit && vite build --mode single",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "check:data": "node scripts/check-no-voter-data.mjs",
+    "check": "npm run check:data && npm run typecheck && npm run lint && npm run format:check && npm test",
+    "prepare": "simple-git-hooks || true"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npm run check:data -- --staged"
+  },
+  "dependencies": {
+    "preact": "^11.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.13",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.0",
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^26.6.6",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "simple-git-hooks": "^2.14.0",
+    "typescript": "~6.0",
+    "typescript-eslint": "^8.72.2",
+    "vite": "^8.3.8",
+    "vite-plugin-singlefile": "^2.3.4",
+    "vitest": "^5.1.0"
+  }
+}
