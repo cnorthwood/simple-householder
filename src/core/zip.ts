@@ -48,15 +48,19 @@ export async function extractSingleFile(
   }
 }
 
-/** Build an AES-256 encrypted zip (PW-1). */
+/**
+ * Build a password-protected zip using ZipCrypto (PW-1), the only encryption the unzip tools
+ * built into Windows and macOS can open. Files are always compressed: ZipCrypto on stored
+ * (uncompressed) files is trivially broken from the known CSV header.
+ */
 export async function createEncryptedZip(
   files: { name: string; content: string }[],
   password: string,
 ): Promise<Blob> {
   const writer = new ZipWriter(new BlobWriter('application/zip'), {
     password,
-    encryptionStrength: 3, // AES-256
-    zipCrypto: false,
+    zipCrypto: true,
+    level: 9,
   });
   for (const file of files) {
     await writer.add(file.name, new TextReader(file.content));

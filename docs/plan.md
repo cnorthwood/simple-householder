@@ -33,7 +33,7 @@ Election Workshop) or into an Affinity mail merge.
    immediately, with plain-English errors.
 3. **Check:** a summary ("4,210 people → 2,380 letters"), a preview of the output, records that
    need attention, and the opinionated options.
-4. **Download:** an AES-256 encrypted zip, protected by a four-word password shown on screen,
+4. **Download:** a password-protected zip (ZipCrypto, so Windows can open it), protected by a four-word password shown on screen,
    with instructions to send the password separately.
 
 ## Decisions
@@ -62,7 +62,7 @@ Each step is one commit, with rules and tests written first.
    fixture generator.
 2. Householding, name formatting, name-line fitting and salutations.
 3. Printer CSV, summary and needs-attention outputs.
-4. Diceware password and AES-256 encrypted zip.
+4. Diceware password and password-protected zip.
 5. Wizard UI with brand styling and Open Sans.
 6. Full end-to-end test of the wizard with a synthetic export.
 

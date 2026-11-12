@@ -90,11 +90,9 @@ export function DownloadStep({ parsed, result, options, onBack, onStartAgain }: 
         </li>
       </ol>
       <p class="muted">
-        To open the file yourself (for example, for a mail merge in Affinity), use a free program
-        such as <strong>7-Zip</strong> (Windows) or <strong>Keka</strong> (Mac), because the unzip
-        tools built into Windows and Mac may not open password-protected files like this one. Inside
-        you’ll find <code>addresses-for-printer.csv</code>, a <code>summary.txt</code> and, if
-        anything needs fixing, <code>needs-attention.csv</code>.
+        To open the file yourself (for example, for a mail merge in Affinity), double-click it and
+        enter the password when asked. Inside you’ll find <code>addresses-for-printer.csv</code>, a{' '}
+        <code>summary.txt</code> and, if anything needs fixing, <code>needs-attention.csv</code>.
       </p>
 
       <div class="actions">

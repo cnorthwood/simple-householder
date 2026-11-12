@@ -18,7 +18,7 @@ export function Footer() {
           )}
         </p>
         <p>
-          Built by volunteers for Liberal Democrat campaigners. Free software under the{' '}
+          Built by Chris Northwood for Liberal Democrat campaigners 🏳️‍⚧️🔶. Free software under the{' '}
           <a href="https://github.com/cnorthwood/simple-householder">GNU AGPL (source code)</a>.
           Passwords use the <a href="https://www.eff.org/dice">EFF Large Wordlist</a> (CC BY 3.0
           US). Typeset in Open Sans (SIL Open Font License).

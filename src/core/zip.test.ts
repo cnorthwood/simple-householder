@@ -13,14 +13,16 @@ describe('createEncryptedZip (PW-1)', () => {
     { name: 'summary.txt', content: 'Summary' },
   ];
 
-  it('encrypts every file with AES-256', async () => {
+  it('encrypts and compresses every file with ZipCrypto, so Windows can open it', async () => {
     const blob = await createEncryptedZip(files, 'orbit-candle-mosaic-thrift');
     const reader = new ZipReader(new BlobReader(blob));
     const entries = await reader.getEntries();
-    expect(entries.map((e) => [e.filename, e.encrypted, e.zipCrypto])).toEqual([
-      ['addresses.csv', true, false],
-      ['summary.txt', true, false],
-    ]);
+    expect(entries.map((e) => [e.filename, e.encrypted, e.zipCrypto, e.compressionMethod])).toEqual(
+      [
+        ['addresses.csv', true, true, 8],
+        ['summary.txt', true, true, 8],
+      ],
+    );
     await reader.close();
   });
 

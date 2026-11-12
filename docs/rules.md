@@ -120,8 +120,13 @@ Sorting (Electionsort/Streetsort, RM p15–18) is done by the printer.
 
 ## Protecting the output
 
-- **PW-1** _(Decision)_ The output is only offered as an AES-256 encrypted zip containing
-  `addresses-for-printer.csv`, `summary.txt` and (if not empty) `needs-attention.csv`.
+- **PW-1** _(Decision)_ The output is only offered as a password-protected zip containing
+  `addresses-for-printer.csv`, `summary.txt` and (if not empty) `needs-attention.csv`. It uses
+  ZipCrypto ("traditional" zip encryption), not AES, because that's what the unzip tools built
+  into Windows and macOS can open, and what campaigners and printers already use. ZipCrypto is
+  weak against a determined attacker; it meets the party's "password-protected file" practice
+  rather than being strong encryption. Files are always compressed, which removes the easiest
+  known-plaintext attack on it.
 - **PW-2** _(Decision)_ The password is 4 words drawn uniformly at random from the EFF large
   diceware word list (7,776 words, about 52 bits), using `crypto.getRandomValues` with rejection
   sampling. Words are lowercase and hyphen-separated. The four hyphenated words and a short list
