@@ -66,7 +66,9 @@ jobs:
 
   deploy:
     name: Deploy to GitHub Pages
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    # Pages isn't available for private repos on the free plan. Set the repository
+    # variable PAGES_ENABLED=true once Pages is switched on (Settings → Pages → GitHub Actions).
+    if: vars.PAGES_ENABLED == 'true' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     permissions:
