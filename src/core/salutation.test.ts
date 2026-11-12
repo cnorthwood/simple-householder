@@ -4,17 +4,17 @@ import { elector } from './testing/fixtures';
 
 describe('salutation', () => {
   it.each([
-    ['SA-1: one person', [{ firstName: 'Meg' }], 'Hello Meg'],
-    ['SA-1: two people', [{ firstName: 'Meg' }, { firstName: 'Chris' }], 'Hello Meg and Chris'],
+    ['SA-1: one person', [{ firstName: 'Meg' }], 'Meg'],
+    ['SA-1: two people', [{ firstName: 'Meg' }, { firstName: 'Chris' }], 'Meg and Chris'],
     [
       'SA-1: three people',
       [{ firstName: 'Meg' }, { firstName: 'Chris' }, { firstName: 'Sam' }],
-      'Hello Meg, Chris and Sam',
+      'Meg, Chris and Sam',
     ],
     [
       'SA-2: preferred name wins when present',
       [{ firstName: 'Elizabeth', preferredName: 'Liz' }, { firstName: 'Chris' }],
-      'Hello Liz and Chris',
+      'Liz and Chris',
     ],
     [
       'SA-3: a repeated first name appears once',
@@ -23,7 +23,7 @@ describe('salutation', () => {
         { firstName: 'Brenda' },
         { firstName: 'john', suffix: 'Jr' },
       ],
-      'Hello John and Brenda',
+      'John and Brenda',
     ],
   ])('%s', (_label, people, expected) => {
     expect(salutation(people.map((p) => elector(p)))).toBe(expected);

@@ -46,18 +46,18 @@ Election Workshop) or into an Affinity mail merge.
 
 ## Decisions
 
-| Topic                 | Decision                                                                                                                                     |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Input format          | Connect "Standard Text" as "Excel (.xls)": a zip containing UTF-16 tab-separated text. Extra columns are ignored.                            |
-| Household key         | The registered address (`AddressLine1–3`, `Post Town`, `Post Code`). `VAddressID` is per person, so it's ignored, as is the mailing address. |
-| Names                 | First name + surname (+ suffix). No titles or middle names. Every elector is named; never collapsed.                                         |
-| Name lines            | At most 2 lines (DL window envelope, A4 letter). Ladder: full names → initials → split across extra letters.                                 |
-| Salutation            | "Hello Meg and Chris", using the preferred name if the export has one, otherwise the first name. Repeated first names appear once.           |
-| Large shared houses   | 6 or more electors and 3 or more different surnames → everyone gets their own letter. Expected to be tuned.                                  |
-| Connect IDs (VANIDs)  | Not included in the output.                                                                                                                  |
-| Output                | Encrypted zip containing the printer CSV, a summary, and a list of records needing attention.                                                |
-| Password              | 4 words from the EFF large diceware list, hyphen-separated (about 52 bits).                                                                  |
-| Custom export formats | Out of scope for now. The parser is built around a column profile so another can be added later.                                             |
+| Topic                 | Decision                                                                                                                                                               |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Input format          | Connect "Standard Text" as "Excel (.xls)": a zip containing UTF-16 tab-separated text. Extra columns are ignored.                                                      |
+| Household key         | The registered address (`AddressLine1–3`, `Post Town`, `Post Code`). `VAddressID` is per person, so it's ignored, as is the mailing address.                           |
+| Names                 | First name + surname (+ suffix). No titles or middle names. Every elector is named; never collapsed.                                                                   |
+| Name lines            | At most 2 lines (DL window envelope, A4 letter). Ladder: full names → initials → split across extra letters.                                                           |
+| Salutation            | "Meg and Chris" (no greeting; the mail merge adds "Dear"), using the preferred name if the export has one, otherwise the first name. Repeated first names appear once. |
+| Large shared houses   | 6 or more electors and 3 or more different surnames → everyone gets their own letter. Expected to be tuned.                                                            |
+| Connect IDs (VANIDs)  | Not included in the output.                                                                                                                                            |
+| Output                | Encrypted zip containing the printer CSV, a summary, and a list of records needing attention.                                                                          |
+| Password              | 4 words from the EFF large diceware list, hyphen-separated (about 52 bits).                                                                                            |
+| Custom export formats | Out of scope for now. The parser is built around a column profile so another can be added later.                                                                       |
 
 The detailed rules, with their sources, are in [`rules.md`](rules.md). The input format is in
 [`connect-export.md`](connect-export.md).

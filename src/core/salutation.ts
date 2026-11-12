@@ -1,7 +1,7 @@
 import { joinNames } from './names';
 import type { Elector } from './types';
 
-/** "Hello Meg and Chris" (SA-1 to SA-4). */
+/** "Meg and Chris", for a mail merge to put after "Dear" (SA-1 to SA-4). */
 export function salutation(electors: readonly Elector[]): string {
   const seen = new Set<string>();
   const names: string[] = [];
@@ -13,5 +13,5 @@ export function salutation(electors: readonly Elector[]): string {
       names.push(name);
     }
   }
-  return `Hello ${joinNames(names)}`;
+  return joinNames(names);
 }

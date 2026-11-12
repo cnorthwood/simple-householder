@@ -68,7 +68,7 @@ describe('printerCsv', () => {
       Addressee: 'Christopher Ashworth and Megan Ashworth',
       'Name Line 1': 'Christopher Ashworth and Megan Ashworth',
       'Name Line 2': '',
-      Salutation: 'Hello Christopher and Megan',
+      Salutation: 'Christopher and Megan',
       'Address Line 1': '12 Larkspur Road',
       'Address Line 2': '',
       'Address Line 3': '',

@@ -19,7 +19,7 @@ describe('household', () => {
       {
         type: 'Household',
         lines: ['Chris Northwood and Meg Northwood'],
-        salutation: 'Hello Chris and Meg',
+        salutation: 'Chris and Meg',
       },
     ]);
   });
@@ -65,7 +65,7 @@ describe('household', () => {
   it('NM-1: lists two electors with identical names both', () => {
     const { items } = household(people('1 Test Street', ['John', 'Smith'], ['John', 'Smith']));
     expect(items[0]?.addressee).toBe('John Smith and John Smith');
-    expect(items[0]?.salutation).toBe('Hello John');
+    expect(items[0]?.salutation).toBe('John');
   });
 
   describe('large shared houses (HH-3)', () => {
@@ -102,7 +102,7 @@ describe('household', () => {
       const { items } = household(shared);
       expect(items).toHaveLength(6);
       expect(items.every((i) => i.type === 'Shared house' && i.electors.length === 1)).toBe(true);
-      expect(items.map((i) => i.salutation)).toContain('Hello Wei');
+      expect(items.map((i) => i.salutation)).toContain('Wei');
     });
 
     it('households them anyway when the option is off', () => {
@@ -129,7 +129,7 @@ describe('household', () => {
         {
           type: 'Household',
           lines: ['A Mensah, K Mensah, A Okafor, C Okafor,', 'N Okafor and O Okafor'],
-          salutation: 'Hello Ama, Kwame, Adaeze, Chukwuemeka, Ngozi and Obinna',
+          salutation: 'Ama, Kwame, Adaeze, Chukwuemeka, Ngozi and Obinna',
         },
       ]);
       expect(items[0]?.usesInitials).toBe(true);
@@ -145,17 +145,17 @@ describe('household', () => {
         {
           type: 'Household (split)',
           lines: ['Alexandra Fotheringham-Whitworth and', 'Benedict Fotheringham-Whitworth'],
-          salutation: 'Hello Alexandra and Benedict',
+          salutation: 'Alexandra and Benedict',
         },
         {
           type: 'Household (split)',
           lines: ['Cordelia Fotheringham-Whitworth and', 'Dominic Fotheringham-Whitworth'],
-          salutation: 'Hello Cordelia and Dominic',
+          salutation: 'Cordelia and Dominic',
         },
         {
           type: 'Household (split)',
           lines: ['Eleanor Fotheringham-Whitworth'],
-          salutation: 'Hello Eleanor',
+          salutation: 'Eleanor',
         },
       ]);
     });
@@ -241,7 +241,7 @@ describe('everyday mode (EV-3 to EV-5)', () => {
       everyday,
     );
     expect(items.map((i) => [i.addressee, i.salutation])).toEqual([
-      ['Chris & Meg Northwood and Sam Okafor', 'Hello Chris, Meg and Sam'],
+      ['Chris & Meg Northwood and Sam Okafor', 'Chris, Meg and Sam'],
     ]);
   });
 

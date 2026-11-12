@@ -64,7 +64,7 @@ async function runWizard(page: Page) {
   await expect(page.getByText('32 people will get 20 letters.')).toBeAttached();
   await expect(page.getByRole('heading', { name: 'Needs attention (2)' })).toBeVisible();
   await expect(page.getByText('Christopher Ashworth and Megan Ashworth')).toBeVisible();
-  await expect(page.getByText('Hello Christopher and Megan')).toBeVisible();
+  await expect(page.getByText('Christopher and Megan')).toBeVisible();
 
   // Turning off the shared-house option households them instead.
   await page.getByLabel(/Give everyone in a large shared house their own letter/).uncheck();
@@ -100,7 +100,7 @@ test('walks through the wizard and downloads an encrypted zip', async ({ page })
   ]);
   const csv = files['addresses-for-printer.csv'] ?? '';
   expect(csv).toContain(
-    'Christopher Ashworth and Megan Ashworth,Christopher Ashworth and Megan Ashworth,,Hello Christopher and Megan,12 Larkspur Road,,,Anytown,M99 1AA,2,Household',
+    'Christopher Ashworth and Megan Ashworth,Christopher Ashworth and Megan Ashworth,,Christopher and Megan,12 Larkspur Road,,,Anytown,M99 1AA,2,Household',
   );
   expect(csv.trim().split('\r\n')).toHaveLength(21);
   expect(files['summary.txt']).toContain('32 people on 20 letters.');
@@ -169,6 +169,6 @@ test('the offline single-file version works from disk', async ({ page }) => {
   await page.goto(pathToFileURL(SINGLE_FILE).href);
   const { password, zip } = await runWizard(page);
   const files = await readZip(zip, password);
-  expect(files['addresses-for-printer.csv']).toContain('Hello Christopher and Megan');
+  expect(files['addresses-for-printer.csv']).toContain('Christopher and Megan');
   expect(unexpected).toEqual([]);
 });

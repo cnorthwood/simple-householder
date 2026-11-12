@@ -93,12 +93,13 @@ Sorting (Electionsort/Streetsort, RM p15–18) is done by the printer.
 
 ## Salutation
 
-- **SA-1** _(Decision)_ The salutation is "Hello " followed by the electors' names, joined as in
-  NM-3: "Hello Meg", "Hello Meg and Chris", "Hello Meg, Chris and Sam".
+- **SA-1** _(Decision)_ The salutation is just the electors' names, joined as in NM-3: "Meg",
+  "Meg and Chris", "Meg, Chris and Sam". There's no greeting, so the mail merge can add its own
+  ("Dear «Salutation»").
 - **SA-2** _(Decision)_ Each elector's name is their preferred name if the export has a preferred
   name column and it's filled in, otherwise their first name.
 - **SA-3** _(Decision)_ A name already used in the salutation (case-insensitive) isn't repeated:
-  John Smith Sr and John Smith Jr get "Hello John".
+  John Smith Sr and John Smith Jr get "John".
 - **SA-4** _(Decision)_ The salutation lists the electors on that item only, so split households
   and shared houses each get their own.
 
