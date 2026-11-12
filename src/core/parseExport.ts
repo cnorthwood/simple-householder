@@ -1,8 +1,14 @@
 import { decodeText } from './decode';
 import { FriendlyError } from './errors';
-import { normaliseHeader, STANDARD_TEXT, type ColumnProfile, type Field } from './profile';
+import {
+  normaliseHeader,
+  PROFILES,
+  STANDARD_TEXT,
+  type ColumnProfile,
+  type Field,
+} from './profile';
 import { parseTsv } from './tsv';
-import type { Elector } from './types';
+import type { Elector, Mode } from './types';
 import { extractSingleFile, isZip } from './zip';
 
 export interface ParsedExport {
@@ -11,6 +17,8 @@ export interface ParsedExport {
   electors: Elector[];
   /** Rows dropped because their VANID had already been seen (IN-6). */
   duplicatesRemoved: number;
+  /** Unrecognised columns kept for the output, in file order (EV-2). */
+  extraColumns: string[];
 }
 
 const DATA_FILE = /\.(xls|txt|tsv|csv)$/i;
@@ -22,14 +30,26 @@ function isOleWorkbook(bytes: Uint8Array): boolean {
 
 function headerIndex(headers: string[], profile: ColumnProfile) {
   const normalised = headers.map(normaliseHeader);
-  const index = {} as Record<Field, number>;
+  const index: Partial<Record<Field, number>> = {};
   const missing: string[] = [];
-  for (const [field, spec] of Object.entries(profile) as [Field, ColumnProfile[Field]][]) {
+  const used = new Set<number>();
+  for (const [field, spec] of Object.entries(profile.columns) as [
+    Field,
+    { headers: readonly string[]; required: boolean; label: string },
+  ][]) {
     const i = normalised.findIndex((h) => spec.headers.some((name) => normaliseHeader(name) === h));
     index[field] = i;
+    if (i !== -1) used.add(i);
     if (i === -1 && spec.required) missing.push(spec.label);
   }
-  return { index, missing };
+  // EV-2: everything else is kept, except columns the export format brings along anyway.
+  const dropped = new Set(profile.dropped.map(normaliseHeader));
+  const extras = profile.keepExtras
+    ? headers
+        .map((header, i) => ({ header, i }))
+        .filter(({ header, i }) => !used.has(i) && header && !dropped.has(normaliseHeader(header)))
+    : [];
+  return { index, missing, extras };
 }
 
 /** Turn decoded export text into electors (IN-3 to IN-6). */
@@ -49,10 +69,10 @@ export function parseExportText(
       'This file doesn’t look like a Connect export. Please check you chose Export Format “Standard Text” and Export As “Excel (.xls)”.',
     );
   }
-  const { index, missing } = headerIndex(headers, profile);
+  const { index, missing, extras } = headerIndex(headers, profile);
   if (missing.length > 0) {
     throw new FriendlyError(
-      `This file is missing some columns we need: ${missing.join(', ')}. Please check you chose Export Format “Standard Text” in Connect.`,
+      `This file is missing some columns we need: ${missing.join(', ')}. ${profile.missingHint}`,
     );
   }
 
@@ -61,7 +81,7 @@ export function parseExportText(
   const electors: Elector[] = [];
   rows.forEach((fields, i) => {
     const get = (field: Field) => {
-      const col = index[field];
+      const col = index[field] ?? -1;
       return col === -1 ? '' : (fields[col] ?? '');
     };
     const vanId = get('vanId');
@@ -85,17 +105,25 @@ export function parseExportText(
         town: get('town'),
         postcode: get('postcode').toUpperCase(),
       },
+      walk: get('walk'),
+      pollingDistrict: get('pollingDistrict'),
+      electorNumber: get('electorNumber'),
+      extras: Object.fromEntries(extras.map(({ header, i }) => [header, fields[i] ?? ''])),
     });
   });
 
   if (electors.length === 0) {
     throw new FriendlyError('This export has no people in it. Please check your list in Connect.');
   }
-  return { fileName, electors, duplicatesRemoved };
+  return { fileName, electors, duplicatesRemoved, extraColumns: extras.map((e) => e.header) };
 }
 
 /** Read a file chosen by the user: a Connect export .zip, or the file inside it (IN-1, IN-2). */
-export async function readExportFile(name: string, bytes: Uint8Array): Promise<ParsedExport> {
+export async function readExportFile(
+  name: string,
+  bytes: Uint8Array,
+  mode: Mode = 'general-election',
+): Promise<ParsedExport> {
   let fileName = name;
   let data = bytes;
   if (isZip(bytes)) {
@@ -113,5 +141,5 @@ export async function readExportFile(name: string, bytes: Uint8Array): Promise<P
       `“${fileName}” isn’t a Connect export. Please choose the .zip you downloaded from “My Export Files” in Connect.`,
     );
   }
-  return parseExportText(decodeText(data), fileName);
+  return parseExportText(decodeText(data), fileName, PROFILES[mode]);
 }

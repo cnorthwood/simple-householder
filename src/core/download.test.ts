@@ -20,7 +20,12 @@ describe('download (PW-1)', () => {
   });
 
   it('leaves out the needs-attention list when there is nothing in it', () => {
-    const clean = { fileName: 'x.xls', electors: [elector()], duplicatesRemoved: 0 };
+    const clean = {
+      fileName: 'x.xls',
+      electors: [elector()],
+      duplicatesRemoved: 0,
+      extraColumns: [],
+    };
     const files = downloadFiles(clean, household(clean.electors), DEFAULT_OPTIONS, date);
     expect(files.map((f) => f.name)).toEqual(['addresses-for-printer.csv', 'summary.txt']);
   });

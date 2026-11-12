@@ -1,6 +1,7 @@
 import type { AttentionReason, HouseholdResult, ItemType, MailItem } from './household';
+import { comparePolling, formatElectorNumber, pollingKey } from './walks';
 import type { ParsedExport } from './parseExport';
-import type { Address } from './types';
+import type { Address, Elector, Mode } from './types';
 
 /** Byte-order mark, so Excel reads the file as UTF-8. */
 export const BOM = String.fromCharCode(0xfeff);
@@ -69,6 +70,65 @@ export function printerCsv(items: readonly MailItem[]): string {
   return toCsv([PRINTER_COLUMNS, ...sortItems(items).map(printerRow)]);
 }
 
+const byPolling = (a: Elector, b: Elector) =>
+  comparePolling(pollingKey(a), pollingKey(b)) || a.row - b.row;
+
+/** One value if everyone agrees, otherwise the different values joined (EV-12). */
+export function collapse(values: readonly string[]): string {
+  return [...new Set(values.filter(Boolean))].join('; ');
+}
+
+/** The earliest polling number on the letter decides its place in the walk (EV-11). */
+function firstElector(item: MailItem): Elector {
+  return [...item.electors].sort(byPolling)[0] as Elector;
+}
+
+/** Walk (natural order), then earliest polling number, then addressee (EV-11). */
+export function sortByWalk(items: readonly MailItem[]): MailItem[] {
+  const keyed = items.map((item) => ({ item, walk: walkOf(item), first: firstElector(item) }));
+  return keyed
+    .sort(
+      (a, b) =>
+        compare(a.walk, b.walk) ||
+        byPolling(a.first, b.first) ||
+        compare(a.item.addressee, b.item.addressee),
+    )
+    .map((k) => k.item);
+}
+
+const walkOf = (item: MailItem) => collapse(item.electors.map((e) => e.walk));
+
+export const EVERYDAY_COLUMNS = [
+  ...PRINTER_COLUMNS,
+  'Default Walk',
+  'Polling District',
+  'Elector Numbers',
+] as const;
+
+/** The everyday file, sorted for walking (EV-10 to EV-12), with any extra columns kept. */
+export function everydayCsv(items: readonly MailItem[], extraColumns: readonly string[]): string {
+  const rows = sortByWalk(items).map((item) => {
+    const electors = [...item.electors].sort(byPolling);
+    return [
+      ...printerRow(item),
+      walkOf(item),
+      collapse(electors.map((e) => e.pollingDistrict)),
+      electors.map(formatElectorNumber).join('; '),
+      ...extraColumns.map((column) => collapse(electors.map((e) => e.extras[column] ?? ''))),
+    ];
+  });
+  return toCsv([[...EVERYDAY_COLUMNS, ...extraColumns], ...rows]);
+}
+
+/** The main file in the download, for the chosen mode. */
+export function addressesCsv(
+  items: readonly MailItem[],
+  mode: Mode,
+  extraColumns: readonly string[],
+): string {
+  return mode === 'everyday' ? everydayCsv(items, extraColumns) : printerCsv(items);
+}
+
 /** Records left out or worth checking, with enough detail to fix them in Connect (OUT-5). */
 export function attentionCsv(result: HouseholdResult): string {
   const rows = result.attention.map(({ elector: e, reason, excluded }) => [
@@ -107,6 +167,8 @@ export interface Summary {
   letters: number;
   lettersByType: Partial<Record<ItemType, number>>;
   lettersWithInitials: number;
+  lettersWithFamilyName: number;
+  walksGuessed: number;
 }
 
 export function summarise(parsed: ParsedExport, result: HouseholdResult): Summary {
@@ -125,6 +187,8 @@ export function summarise(parsed: ParsedExport, result: HouseholdResult): Summar
     letters: result.items.length,
     lettersByType,
     lettersWithInitials: result.items.filter((i) => i.usesInitials).length,
+    lettersWithFamilyName: result.items.filter((i) => i.usesFamilyName).length,
+    walksGuessed: result.walksGuessed,
   };
 }
 
@@ -134,7 +198,7 @@ const plural = (n: number, one: string, many = `${one}s`) =>
 /** Plain-text summary included in the download (OUT-6). */
 export function summaryText(
   s: Summary,
-  meta: { fileName: string; date: Date; separateSharedHouses: boolean },
+  meta: { fileName: string; date: Date; separateSharedHouses: boolean; mode: Mode },
 ): string {
   const lines = [
     'Simple Householder summary',
@@ -158,13 +222,21 @@ export function summaryText(
       ([type, n]) => `  - ${type}: ${n.toLocaleString('en-GB')}`,
     ),
     `Letters using initials:      ${s.lettersWithInitials.toLocaleString('en-GB')}`,
+    ...(meta.mode === 'everyday'
+      ? [
+          `Letters to "The … Family":   ${s.lettersWithFamilyName.toLocaleString('en-GB')}`,
+          `Walks filled in:             ${s.walksGuessed.toLocaleString('en-GB')}`,
+        ]
+      : []),
     `Names to check by hand:      ${s.toCheck.toLocaleString('en-GB')}`,
     '',
     meta.separateSharedHouses
       ? 'Large shared houses (6+ people, 3+ surnames): one letter per person.'
       : 'Large shared houses: householded like any other address.',
     '',
-    `Every letter names each elector individually, as Royal Mail requires. ${plural(s.peopleIncluded, 'person', 'people')} on ${plural(s.letters, 'letter')}.`,
+    meta.mode === 'everyday'
+      ? `Everyday exporting: names are shortened (e.g. "Chris & Meg Northwood"), so this file is NOT suitable for Royal Mail candidate mail. ${plural(s.peopleIncluded, 'person', 'people')} on ${plural(s.letters, 'letter')}, sorted by walk.`
+      : `Every letter names each elector individually, as Royal Mail requires. ${plural(s.peopleIncluded, 'person', 'people')} on ${plural(s.letters, 'letter')}.`,
   ];
   return `${lines.join('\r\n')}\r\n`;
 }

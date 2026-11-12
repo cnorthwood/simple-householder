@@ -1,6 +1,16 @@
-import { fitNames, forceFit, fullName, initialledName, joinNames, type LineLimits } from './names';
+import {
+  fitUnits,
+  forceFit,
+  fullName,
+  groupBySurname,
+  groupedUnits,
+  initialledName,
+  initials,
+  type LineLimits,
+} from './names';
 import { salutation } from './salutation';
-import type { Address, Elector } from './types';
+import type { Address, Elector, Mode } from './types';
+import { fillWalks } from './walks';
 
 /** Large shared house thresholds (HH-3). Change here and in docs/rules.md together. */
 export const SHARED_HOUSE_MIN_ELECTORS = 6;
@@ -21,6 +31,8 @@ export interface MailItem {
   nameLines: string[];
   salutation: string;
   usesInitials: boolean;
+  /** "The Northwood Family" (EV-5, everyday mode only). */
+  usesFamilyName: boolean;
 }
 
 export type AttentionReason =
@@ -38,12 +50,14 @@ export interface AttentionRecord {
 }
 
 export interface HouseholdOptions {
+  mode: Mode;
   /** Give everyone in a large shared house their own letter (HH-3). */
   separateSharedHouses: boolean;
   limits: LineLimits;
 }
 
 export const DEFAULT_OPTIONS: HouseholdOptions = {
+  mode: 'general-election',
   separateSharedHouses: true,
   limits: DEFAULT_LIMITS,
 };
@@ -51,6 +65,8 @@ export const DEFAULT_OPTIONS: HouseholdOptions = {
 export interface HouseholdResult {
   items: MailItem[];
   attention: AttentionRecord[];
+  /** Blank walks filled in (EV-9); always 0 in General Election mode. */
+  walksGuessed: number;
 }
 
 /** EL-1, EL-2: why an elector can't be addressed, if they can't. */
@@ -88,76 +104,124 @@ export function isLargeSharedHouse(electors: readonly Elector[]): boolean {
   return electors.length >= SHARED_HOUSE_MIN_ELECTORS && surnames.size >= SHARED_HOUSE_MIN_SURNAMES;
 }
 
-function item(
-  electors: Elector[],
-  type: ItemType,
-  names: string[],
-  nameLines: string[],
-  usesInitials: boolean,
-): MailItem {
+/** One way of writing the addressee: the pieces that mustn't be broken across lines. */
+interface Naming {
+  units: string[];
+  usesInitials: boolean;
+  usesFamilyName: boolean;
+}
+
+/** NM-4 to NM-5 (General Election) or EV-3 to EV-5 (everyday), in order of preference. */
+function namings(electors: Elector[], mode: Mode): Naming[] {
+  if (mode === 'general-election') {
+    return [
+      { units: electors.map(fullName), usesInitials: false, usesFamilyName: false },
+      { units: electors.map(initialledName), usesInitials: true, usesFamilyName: false },
+    ].map((n) => ({ ...n, units: namesToUnits(n.units) }));
+  }
+  const full = groupBySurname(electors, (e) => e.firstName);
+  const result: Naming[] = [
+    { units: groupedUnits(full), usesInitials: false, usesFamilyName: false },
+    {
+      units: groupedUnits(groupBySurname(electors, (e) => initials(e.firstName))),
+      usesInitials: true,
+      usesFamilyName: false,
+    },
+  ];
+  const [only] = full;
+  if (full.length === 1 && only && electors.length > 1) {
+    result.push({
+      units: ['The', ...only.surname.split(' '), 'Family'],
+      usesInitials: false,
+      usesFamilyName: true,
+    });
+  }
+  return result;
+}
+
+/** NM-3/NM-4 joining for General Election mode, as unbreakable pieces. */
+function namesToUnits(names: string[]): string[] {
+  return names.map((name, i) => {
+    if (i < names.length - 2) return `${name},`;
+    if (i === names.length - 2) return `${name} and`;
+    return name;
+  });
+}
+
+function item(electors: Elector[], type: ItemType, naming: Naming, nameLines: string[]): MailItem {
   return {
     electors,
     address: (electors[0] as Elector).address,
     type,
-    addressee: joinNames(names),
+    addressee: naming.units.join(' '),
     nameLines,
     salutation: salutation(electors),
-    usesInitials,
+    usesInitials: naming.usesInitials,
+    usesFamilyName: naming.usesFamilyName,
   };
 }
 
-/** NM-4, NM-5: full names if they fit, else initials, else null. */
-function tryItem(electors: Elector[], type: ItemType, limits: LineLimits): MailItem | null {
-  const full = electors.map(fullName);
-  const fullLines = fitNames(full, limits);
-  if (fullLines) return item(electors, type, full, fullLines, false);
-  const initials = electors.map(initialledName);
-  const initialLines = fitNames(initials, limits);
-  if (initialLines) return item(electors, type, initials, initialLines, true);
+/** The first naming that fits, or null. */
+function tryItem(electors: Elector[], type: ItemType, options: HouseholdOptions): MailItem | null {
+  for (const naming of namings(electors, options.mode)) {
+    const lines = fitUnits(naming.units, options.limits);
+    if (lines) return item(electors, type, naming, lines);
+  }
   return null;
+}
+
+/** Does the first-choice naming (full names) fit? Used to pack split households (NM-6). */
+function fullNamesFit(electors: Elector[], options: HouseholdOptions): boolean {
+  const [first] = namings(electors, options.mode);
+  return first !== undefined && fitUnits(first.units, options.limits) !== null;
 }
 
 /** An item for one elector, falling back to forced wrapping (NM-7). */
 function singleItem(
   e: Elector,
   type: ItemType,
-  limits: LineLimits,
+  options: HouseholdOptions,
   attention: AttentionRecord[],
 ): MailItem {
-  const fitted = tryItem([e], type, limits);
+  const fitted = tryItem([e], type, options);
   if (fitted) return fitted;
   attention.push({ elector: e, reason: 'Name too long for the envelope window', excluded: false });
   const name = initialledName(e);
-  return item([e], type, [name], forceFit(name, limits), true);
+  return item(
+    [e],
+    type,
+    { units: [name], usesInitials: true, usesFamilyName: false },
+    forceFit(name, options.limits),
+  );
 }
 
-/** NM-6: pack electors in order, as many per letter as fit with full names. */
+/** NM-6, EV-5: pack electors in order, as many per letter as fit with full names. */
 function splitHousehold(
   electors: Elector[],
-  limits: LineLimits,
+  options: HouseholdOptions,
   attention: AttentionRecord[],
 ): MailItem[] {
   const items: MailItem[] = [];
   let chunk: Elector[] = [];
   const flush = () => {
     if (chunk.length === 0) return;
-    const names = chunk.map(fullName);
-    const lines = fitNames(names, limits);
+    const [naming] = namings(chunk, options.mode);
+    const lines = naming && fitUnits(naming.units, options.limits);
     items.push(
-      lines
-        ? item(chunk, 'Household (split)', names, lines, false)
-        : singleItem(chunk[0] as Elector, 'Household (split)', limits, attention),
+      naming && lines
+        ? item(chunk, 'Household (split)', naming, lines)
+        : singleItem(chunk[0] as Elector, 'Household (split)', options, attention),
     );
     chunk = [];
   };
   for (const e of electors) {
-    if (fitNames([...chunk, e].map(fullName), limits)) {
+    if (fullNamesFit([...chunk, e], options)) {
       chunk.push(e);
     } else {
       flush();
       chunk = [e];
       // An elector whose full name doesn't fit even alone gets their own letter right away.
-      if (!fitNames([fullName(e)], limits)) flush();
+      if (!fullNamesFit([e], options)) flush();
     }
   }
   flush();
@@ -166,9 +230,11 @@ function splitHousehold(
 
 /** Turn electors into letters, following docs/rules.md. */
 export function household(
-  electors: readonly Elector[],
+  input: readonly Elector[],
   options: HouseholdOptions = DEFAULT_OPTIONS,
 ): HouseholdResult {
+  const { electors, guessed } =
+    options.mode === 'everyday' ? fillWalks(input) : { electors: input, guessed: 0 };
   const attention: AttentionRecord[] = [];
   const groups = new Map<string, Elector[]>();
   for (const e of electors) {
@@ -191,18 +257,16 @@ export function household(
     const withAddress = (i: MailItem): MailItem => ({ ...i, address });
 
     if (sorted.length === 1) {
-      items.push(
-        withAddress(singleItem(sorted[0] as Elector, 'Single', options.limits, attention)),
-      );
+      items.push(withAddress(singleItem(sorted[0] as Elector, 'Single', options, attention)));
     } else if (options.separateSharedHouses && isLargeSharedHouse(sorted)) {
       for (const e of sorted) {
-        items.push(withAddress(singleItem(e, 'Shared house', options.limits, attention)));
+        items.push(withAddress(singleItem(e, 'Shared house', options, attention)));
       }
     } else {
-      const whole = tryItem(sorted, 'Household', options.limits);
-      const result = whole ? [whole] : splitHousehold(sorted, options.limits, attention);
+      const whole = tryItem(sorted, 'Household', options);
+      const result = whole ? [whole] : splitHousehold(sorted, options, attention);
       items.push(...result.map(withAddress));
     }
   }
-  return { items, attention };
+  return { items, attention, walksGuessed: guessed };
 }

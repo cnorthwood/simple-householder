@@ -11,46 +11,7 @@ import {
   toCsv,
 } from './output';
 import { parseExportText } from './parseExport';
-import { elector, fixtureText } from './testing/fixtures';
-
-/** Parse our own CSV back for assertions (handles the quoting we produce). */
-function readCsv(csv: string): Record<string, string>[] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let field = '';
-  let quoted = false;
-  const text = csv.startsWith(BOM) ? csv.slice(1) : csv;
-  const endField = () => {
-    row.push(field);
-    field = '';
-  };
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (quoted) {
-      if (c === '"' && text[i + 1] === '"') {
-        field += '"';
-        i++;
-      } else if (c === '"') {
-        quoted = false;
-      } else {
-        field += c;
-      }
-    } else if (c === '"') {
-      quoted = true;
-    } else if (c === ',') {
-      endField();
-    } else if (c === '\r' && text[i + 1] === '\n') {
-      endField();
-      rows.push(row);
-      row = [];
-      i++;
-    } else {
-      field += c;
-    }
-  }
-  const [header = [], ...body] = rows;
-  return body.map((r) => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ''])));
-}
+import { elector, fixtureText, readCsv } from './testing/fixtures';
 
 describe('csv (OUT-1)', () => {
   it.each([
@@ -179,6 +140,8 @@ describe('summary (OUT-6)', () => {
       letters: 20,
       lettersByType: { Household: 5, Single: 5, 'Shared house': 7, 'Household (split)': 3 },
       lettersWithInitials: 1,
+      lettersWithFamilyName: 0,
+      walksGuessed: 0,
     });
   });
 
@@ -187,6 +150,7 @@ describe('summary (OUT-6)', () => {
       fileName: 'Export.xls',
       date: new Date('2026-11-12T19:30:00Z'),
       separateSharedHouses: true,
+      mode: 'general-election',
     });
     expect(text).toContain('People in the export:        35');
     expect(text).toContain('  - Shared house: 7');

@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { fitNames, forceFit, fullName, initialledName, joinNames } from './names';
+import {
+  fitNames,
+  forceFit,
+  fullName,
+  groupBySurname,
+  groupedUnits,
+  initialledName,
+  initials,
+  joinNames,
+} from './names';
 import { elector } from './testing/fixtures';
 
 const limits = { maxLines: 2, lineLength: 40 };
@@ -78,5 +87,77 @@ describe('forceFit (NM-7)', () => {
     const lines = forceFit(name, limits);
     expect(lines).toHaveLength(2);
     expect(lines.join(' ')).toBe(name);
+  });
+});
+
+describe('everyday names (EV-3, EV-4)', () => {
+  const groups = (...people: [string, string][]) =>
+    groupBySurname(
+      people.map(([firstName, lastName]) => elector({ firstName, lastName })),
+      (e) => e.firstName,
+    );
+  const joined = (...people: [string, string][]) => groupedUnits(groups(...people)).join(' ');
+
+  it.each([
+    [[['Chris', 'Northwood']], 'Chris Northwood'],
+    [
+      [
+        ['Chris', 'Northwood'],
+        ['Meg', 'Northwood'],
+      ],
+      'Chris & Meg Northwood',
+    ],
+    [
+      [
+        ['Ann', 'Bloggs'],
+        ['Chris', 'Northwood'],
+        ['Meg', 'Northwood'],
+      ],
+      'Ann Bloggs and Chris & Meg Northwood',
+    ],
+    [
+      [
+        ['A', 'X'],
+        ['B', 'X'],
+        ['C', 'X'],
+        ['D', 'Y'],
+        ['E', 'Z'],
+      ],
+      'A, B & C X, D Y and E Z',
+    ],
+    [
+      [
+        ['Chris', 'NORTHWOOD'],
+        ['Meg', 'Northwood'],
+      ],
+      'Chris & Meg NORTHWOOD',
+    ],
+  ] as [[string, string][], string][])('%j → %s', (people, expected) => {
+    expect(joined(...people)).toBe(expected);
+  });
+
+  it('keeps people with different suffixes in separate groups', () => {
+    const units = groupedUnits(
+      groupBySurname(
+        [
+          elector({ firstName: 'John', lastName: 'Smith', suffix: 'Sr' }),
+          elector({ firstName: 'John', lastName: 'Smith', suffix: 'Jr' }),
+        ],
+        (e) => e.firstName,
+      ),
+    );
+    expect(units.join(' ')).toBe('John Smith Sr and John Smith Jr');
+  });
+
+  it('never breaks a first name away from its surname', () => {
+    expect(groupedUnits(groups(['Chris', 'Northwood'], ['Meg', 'Northwood']))).toEqual([
+      'Chris &',
+      'Meg Northwood',
+    ]);
+  });
+
+  it('makes initials from each word of a first name', () => {
+    expect(initials('Mary Jane')).toBe('M J');
+    expect(initials('Anne-Marie')).toBe('A');
   });
 });

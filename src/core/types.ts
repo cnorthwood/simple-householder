@@ -16,4 +16,13 @@ export interface Elector {
   /** Empty when the export has no preferred-name column or it's blank. */
   preferredName: string;
   address: Address;
+  /** Everyday mode only (EV-1); empty otherwise. */
+  walk: string;
+  pollingDistrict: string;
+  electorNumber: string;
+  /** Unrecognised columns kept for the output (EV-2), by header. Empty in General Election mode. */
+  extras: Readonly<Record<string, string>>;
 }
+
+/** "General Election compatible householding" or "Everyday exporting". */
+export type Mode = 'general-election' | 'everyday';

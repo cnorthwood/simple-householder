@@ -28,6 +28,10 @@ describe('parseExportText', () => {
         town: 'Anytown',
         postcode: 'M99 1AA',
       },
+      walk: '',
+      pollingDistrict: '',
+      electorNumber: '',
+      extras: {},
     });
   });
 

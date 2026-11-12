@@ -225,3 +225,109 @@ describe('performance', () => {
     expect(performance.now() - start).toBeLessThan(3000);
   });
 });
+
+describe('everyday mode (EV-3 to EV-5)', () => {
+  const everyday = { ...DEFAULT_OPTIONS, mode: 'everyday' as const };
+  const lines = (...names: [string, string][]) =>
+    household(people('1 Test Street', ...names), everyday).items.map((i) => ({
+      lines: i.nameLines,
+      initials: i.usesInitials,
+      family: i.usesFamilyName,
+    }));
+
+  it('EV-3: groups first names under a shared surname', () => {
+    const { items } = household(
+      people('1 Test Street', ['Meg', 'Northwood'], ['Chris', 'Northwood'], ['Sam', 'Okafor']),
+      everyday,
+    );
+    expect(items.map((i) => [i.addressee, i.salutation])).toEqual([
+      ['Chris & Meg Northwood and Sam Okafor', 'Hello Chris, Meg and Sam'],
+    ]);
+  });
+
+  it('EV-5.1: switches to grouped initials when full names don’t fit', () => {
+    expect(
+      lines(
+        ...['Chukwuemeka', 'Adaeze', 'Obinnaya', 'Ngozi', 'Chiamaka'].map((n): [string, string] => [
+          n,
+          'Okafor',
+        ]),
+        ...['Kwamena', 'Abena', 'Yaw'].map((n): [string, string] => [n, 'Mensah-Bonsu']),
+      ),
+    ).toEqual([
+      {
+        lines: ['A, K & Y Mensah-Bonsu and A, C, C, N &', 'O Okafor'],
+        initials: true,
+        family: false,
+      },
+    ]);
+  });
+
+  it('EV-5.2: uses the family name when everyone shares a surname and initials don’t fit', () => {
+    const names = 'Ann Ben Cat Dan Eve Fay Gus Hal Ian Jo Kit Lu Max Ned Oz Pat Quin Rob Sue Tom'
+      .split(' ')
+      .map((n): [string, string] => [n, 'Fotheringham-Whitworth']);
+    expect(lines(...names)).toEqual([
+      { lines: ['The Fotheringham-Whitworth Family'], initials: false, family: true },
+    ]);
+  });
+
+  it('EV-5.3: splits a mixed household that doesn’t fit even as initials', () => {
+    const { items } = household(
+      people(
+        '1 Test Street',
+        ...['Alexandra', 'Benedict', 'Cordelia', 'Dominic', 'Eleanor'].map(
+          (n): [string, string] => [n, 'Fotheringham-Whitworth'],
+        ),
+        ...['Gwendolyn', 'Horatio'].map((n): [string, string] => [n, 'Montgomery-Smythe']),
+      ),
+      { ...everyday, separateSharedHouses: false },
+    );
+    expect(items.every((i) => i.type === 'Household (split)')).toBe(true);
+    expect(items.flatMap((i) => i.electors)).toHaveLength(7);
+    expect(items.every((i) => !i.usesFamilyName)).toBe(true);
+  });
+
+  it('never says "The Residents" or similar', () => {
+    const { items } = household(
+      people('1 Test Street', ['Meg', 'Northwood'], ['Chris', 'Northwood']),
+      everyday,
+    );
+    expect(items[0]?.addressee).not.toMatch(/resident|occupier|household/i);
+  });
+
+  it('applies the shared-house rule as in General Election mode (HH-3)', () => {
+    const { items } = household(
+      people(
+        '1 Test Street',
+        ['Harry', 'Wilson'],
+        ['Wei', 'Zhang'],
+        ['Marta', 'Kowalski'],
+        ['Omar', 'Haddad'],
+        ['Grace', 'Wilson'],
+        ['Rhys', 'Evans'],
+      ),
+      everyday,
+    );
+    expect(items).toHaveLength(6);
+  });
+});
+
+describe('everyday performance', () => {
+  it('fills walks and households a whole constituency in a few seconds', () => {
+    const electors = Array.from({ length: 100_000 }, (_, i) =>
+      elector({
+        firstName: `First${i % 97}`,
+        lastName: `Last${Math.floor(i / 2) % 89}`,
+        address: { line1: `${Math.floor(i / 2)} Long Road` },
+        pollingDistrict: `D${i % 50}`,
+        electorNumber: String(i),
+        walk: i % 3 === 0 ? '' : `Walk ${Math.floor(i / 400)}`,
+      }),
+    );
+    const start = performance.now();
+    const { items } = household(electors, { ...DEFAULT_OPTIONS, mode: 'everyday' });
+    expect(items.every((i) => i.electors.every((e) => e.walk))).toBe(true);
+    expect(performance.now() - start).toBeLessThan(5000);
+  });
+});
