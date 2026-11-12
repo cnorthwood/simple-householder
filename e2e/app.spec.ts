@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('loads and explains the privacy promise', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Simple Householder' })).toBeVisible();
-  await expect(page.getByText('never leaves it')).toBeVisible();
+  await expect(page.getByText('Your data stays on your computer.')).toBeVisible();
 });
 
 test('makes no network requests beyond its own static files', async ({ page, baseURL }) => {

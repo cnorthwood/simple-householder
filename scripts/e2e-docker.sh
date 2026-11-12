@@ -30,6 +30,6 @@ docker run --rm "${tty_flag[@]}" --init --ipc=host \
     [ -f node_modules/.installed ] || { npm ci --no-audit --no-fund --ignore-scripts && touch node_modules/.installed; }
     status=0
     npx playwright test "$@" || status=$?
-    chown -R '"$(id -u):$(id -g)"' test-results playwright-report dist 2>/dev/null || true
+    chown -R '"$(id -u):$(id -g)"' test-results playwright-report dist dist-single 2>/dev/null || true
     exit $status
   ' bash "$@"

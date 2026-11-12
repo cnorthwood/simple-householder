@@ -26,6 +26,10 @@ See `CLAUDE.md` for project rules and `docs/` for the plan and specification.
 - Passwords use the [EFF Large Wordlist](https://www.eff.org/dice) by the Electronic Frontier
   Foundation, licensed under [CC BY 3.0 US](https://creativecommons.org/licenses/by/3.0/us/).
 
+- Typeset in [Open Sans](https://fonts.google.com/specimen/Open+Sans), licensed under the SIL Open
+  Font License 1.1, bundled via [Fontsource](https://fontsource.org/).
+- Styled after the [Liberal Democrat brand guide](https://www.libdems.org.uk/brand).
+
 ## Licence
 
 Copyright © 2026 Chris Northwood and contributors.
