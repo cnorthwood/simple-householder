@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "description": "Household a Connect (NGP VAN) export into Royal Mail-compliant addressed candidate mail, entirely in the browser.",
-  "license": "UNLICENSED",
+  "license": "AGPL-3.0-or-later",
   "engines": {
     "node": ">=22"
   },
@@ -46,5 +46,9 @@
     "vite": "^8.3.8",
     "vite-plugin-singlefile": "^2.3.4",
     "vitest": "^5.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cnorthwood/simple-householder.git"
   }
 }

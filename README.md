@@ -20,3 +20,11 @@ npm run check                     # before committing
 See `CLAUDE.md` for project rules and `docs/` for the plan and specification.
 
 **Never commit real voter data.** Keep exports in `private/` (gitignored).
+
+## Licence
+
+Copyright © 2026 Chris Northwood and contributors.
+
+Simple Householder is free software: you can redistribute it and/or modify it under the terms of
+the GNU Affero General Public License as published by the Free Software Foundation, either version
+3 of the License, or (at your option) any later version. See [LICENSE](LICENSE).
