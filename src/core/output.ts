@@ -2,6 +2,9 @@ import type { AttentionReason, HouseholdResult, ItemType, MailItem } from './hou
 import type { ParsedExport } from './parseExport';
 import type { Address } from './types';
 
+/** Byte-order mark, so Excel reads the file as UTF-8. */
+export const BOM = String.fromCharCode(0xfeff);
+
 /** RFC 4180: quote fields containing commas, quotes, line breaks or edge spaces. */
 export function csvField(value: string | number): string {
   const s = String(value);
@@ -10,7 +13,7 @@ export function csvField(value: string | number): string {
 
 /** UTF-8 BOM so Excel shows accented names correctly; CRLF line endings (OUT-1). */
 export function toCsv(rows: readonly (readonly (string | number)[])[]): string {
-  return `﻿${rows.map((r) => r.map(csvField).join(',')).join('\r\n')}\r\n`;
+  return `${BOM}${rows.map((r) => r.map(csvField).join(',')).join('\r\n')}\r\n`;
 }
 
 export const PRINTER_COLUMNS = [

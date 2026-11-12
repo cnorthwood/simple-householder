@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { household } from './household';
 import {
   addressLines,
+  BOM,
   attentionCsv,
   csvField,
   printerCsv,
@@ -18,18 +19,34 @@ function readCsv(csv: string): Record<string, string>[] {
   let row: string[] = [];
   let field = '';
   let quoted = false;
-  const text = csv.replace(/^﻿/, '');
+  const text = csv.startsWith(BOM) ? csv.slice(1) : csv;
+  const endField = () => {
+    row.push(field);
+    field = '';
+  };
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (quoted) {
-      if (c === '"' && text[i + 1] === '"') ((field += '"'), i++);
-      else if (c === '"') quoted = false;
-      else field += c;
-    } else if (c === '"') quoted = true;
-    else if (c === ',') (row.push(field), (field = ''));
-    else if (c === '\r' && text[i + 1] === '\n') {
-      (row.push(field), rows.push(row), (row = []), (field = ''), i++);
-    } else field += c;
+      if (c === '"' && text[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else if (c === '"') {
+        quoted = false;
+      } else {
+        field += c;
+      }
+    } else if (c === '"') {
+      quoted = true;
+    } else if (c === ',') {
+      endField();
+    } else if (c === '\r' && text[i + 1] === '\n') {
+      endField();
+      rows.push(row);
+      row = [];
+      i++;
+    } else {
+      field += c;
+    }
   }
   const [header = [], ...body] = rows;
   return body.map((r) => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ''])));
@@ -53,7 +70,7 @@ describe('csv (OUT-1)', () => {
         ['a', 'b'],
         ['1', '2'],
       ]),
-    ).toBe('﻿a,b\r\n1,2\r\n');
+    ).toBe(`${BOM}a,b\r\n1,2\r\n`);
   });
 });
 
