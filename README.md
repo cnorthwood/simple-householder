@@ -8,13 +8,13 @@ security policy blocks it from making any network connections at all.
 
 ## Development
 
-Requires Node 22+.
+Requires Node 22+, and Docker for the end-to-end tests.
 
 ```sh
 npm install
-npx playwright install chromium   # first time only, for e2e tests
 npm run dev
-npm run check                     # before committing
+npm run check   # before committing
+npm run e2e     # end-to-end tests, in Docker
 ```
 
 See `CLAUDE.md` for project rules and `docs/` for the plan and specification.

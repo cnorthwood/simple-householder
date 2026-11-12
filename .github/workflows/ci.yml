@@ -27,16 +27,14 @@ jobs:
       - run: npm run check
 
   e2e:
-    name: End-to-end (incl. no-network check)
+    name: End-to-end in Docker (incl. no-network check)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # Same Docker image as local runs; tag derived from package-lock.json
       - run: npm run e2e
       - uses: actions/upload-artifact@v7
         if: failure()

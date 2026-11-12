@@ -43,7 +43,9 @@ Audience: volunteer campaigners, not data specialists. The tool does one job, an
 
 - `npm run dev`: dev server (no CSP in dev; it's injected at build)
 - `npm test`: unit tests (Vitest)
-- `npm run e2e`: build, serve, and run the Playwright tests
+- `npm run e2e`: build, serve, and run the Playwright tests inside the official Playwright Docker
+  image (tag derived from `package-lock.json`). Needs Docker. `npm run e2e:local` runs them on the
+  host instead.
 - `npm run check`: data guard + typecheck + lint + format check + unit tests (run before committing)
 - `npm run build`: build to `dist/` (GitHub Pages)
 - `npm run build:single`: build a single offline HTML file to `dist-single/`
