@@ -24,8 +24,16 @@ Election Workshop) or into an Affinity mail merge.
 - Styling follows the Liberal Democrat brand guide's colours and type (Open Sans, bundled; Democrat
   Orange `#ff6400`; Liberty Navy `#072f5f`). No logo.
 
+## Modes
+
+- **General Election compatible householding:** Royal Mail candidate mail, everyone named in full.
+- **Everyday exporting:** hand-delivered leaflets and letters. Names are grouped by surname
+  ("Chris & Meg Northwood"), blank walks are filled in, and letters are sorted by walk then polling
+  number. See EV-1 to EV-12 in [`rules.md`](rules.md).
+
 ## The wizard
 
+0. **Choose a mode.**
 1. **Export from Connect:** step-by-step instructions (build list → Export → Export Format
    "Standard Text" → Export As "Excel (.xls)" → My Export Files → download the .zip). The steps
    are defined as data, so we can expand them into a fuller walkthrough later.

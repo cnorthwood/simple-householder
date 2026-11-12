@@ -6,7 +6,7 @@ import {
   type HouseholdResult,
   type MailItem,
 } from '../core/household';
-import { addressLines, sortItems, summarise } from '../core/output';
+import { addressLines, collapse, sortByWalk, sortItems, summarise } from '../core/output';
 import type { ParsedExport } from '../core/parseExport';
 
 interface Props {
@@ -23,7 +23,7 @@ const n = (value: number) => value.toLocaleString('en-GB');
 const count = (value: number, one: string, many: string) =>
   `${n(value)} ${value === 1 ? one : many}`;
 
-type Filter = 'all' | 'Household' | 'Household (split)' | 'Shared house' | 'initials';
+type Filter = 'all' | 'Household' | 'Household (split)' | 'Shared house' | 'initials' | 'family';
 const FILTERS: { id: Filter; label: string; test: (i: MailItem) => boolean }[] = [
   { id: 'all', label: 'All letters', test: () => true },
   { id: 'Household', label: 'Households', test: (i) => i.type === 'Household' },
@@ -34,6 +34,7 @@ const FILTERS: { id: Filter; label: string; test: (i: MailItem) => boolean }[] =
   },
   { id: 'Shared house', label: 'Shared houses', test: (i) => i.type === 'Shared house' },
   { id: 'initials', label: 'Using initials', test: (i) => i.usesInitials },
+  { id: 'family', label: 'Using “The … Family”', test: (i) => i.usesFamilyName },
 ];
 
 export function CheckStep({ parsed, result, options, onOptionsChange, onBack, onNext }: Props) {
@@ -41,7 +42,11 @@ export function CheckStep({ parsed, result, options, onOptionsChange, onBack, on
   const summary = summarise(parsed, result);
   const leftOut = Object.values(summary.leftOut).reduce((a, b) => a + b, 0);
   const activeFilter = FILTERS.find((f) => f.id === filter) ?? FILTERS[0];
-  const shown = sortItems(result.items).filter((i) => activeFilter?.test(i));
+  const everyday = options.mode === 'everyday';
+  const filters = FILTERS.filter((f) => everyday || f.id !== 'family');
+  const shown = (everyday ? sortByWalk(result.items) : sortItems(result.items)).filter((i) =>
+    activeFilter?.test(i),
+  );
 
   return (
     <section>
@@ -62,6 +67,25 @@ export function CheckStep({ parsed, result, options, onOptionsChange, onBack, on
         {n(summary.peopleIncluded)} people will get {n(summary.letters)} letters.
       </p>
       <ul class="facts">
+        {everyday && (
+          <li>
+            Names are shortened, so these letters{' '}
+            <strong>can’t be sent as Royal Mail candidate mail</strong>. They’re sorted by walk,
+            then polling number.
+          </li>
+        )}
+        {summary.walksGuessed > 0 && (
+          <li>
+            {count(summary.walksGuessed, 'person had', 'people had')} no walk in Connect, so we’ve
+            put them in the walk of their neighbours on the register.
+          </li>
+        )}
+        {summary.lettersWithFamilyName > 0 && (
+          <li>
+            {count(summary.lettersWithFamilyName, 'letter is', 'letters are')} addressed to “The …
+            Family” because everyone’s names wouldn’t fit.
+          </li>
+        )}
         {summary.duplicatesRemoved > 0 && (
           <li>
             {count(summary.duplicatesRemoved, 'duplicate row was', 'duplicate rows were')} removed
@@ -83,7 +107,8 @@ export function CheckStep({ parsed, result, options, onOptionsChange, onBack, on
         {summary.lettersWithInitials > 0 && (
           <li>
             {count(summary.lettersWithInitials, 'letter uses', 'letters use')} initials (like “M
-            Northwood”) to fit everyone in the envelope window. Royal Mail accepts this.
+            Northwood”) to fit everyone in the envelope window.
+            {everyday ? '' : ' Royal Mail accepts this.'}
           </li>
         )}
       </ul>
@@ -148,7 +173,7 @@ export function CheckStep({ parsed, result, options, onOptionsChange, onBack, on
       <label class="filter">
         Show{' '}
         <select value={filter} onChange={(e) => setFilter(e.currentTarget.value as Filter)}>
-          {FILTERS.map((f) => (
+          {filters.map((f) => (
             <option key={f.id} value={f.id}>
               {f.label}
             </option>
@@ -166,6 +191,7 @@ export function CheckStep({ parsed, result, options, onOptionsChange, onBack, on
             <tr>
               <th scope="col">Envelope</th>
               <th scope="col">Salutation</th>
+              {everyday && <th scope="col">Walk</th>}
               <th scope="col">Type</th>
             </tr>
           </thead>
@@ -187,6 +213,7 @@ export function CheckStep({ parsed, result, options, onOptionsChange, onBack, on
                   </address>
                 </td>
                 <td>{item.salutation}</td>
+                {everyday && <td>{collapse(item.electors.map((e) => e.walk))}</td>}
                 <td>{item.type}</td>
               </tr>
             ))}

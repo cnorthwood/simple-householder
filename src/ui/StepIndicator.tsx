@@ -1,6 +1,7 @@
-export type StepId = 'export' | 'file' | 'check' | 'download';
+export type StepId = 'mode' | 'export' | 'file' | 'check' | 'download';
 
 export const STEPS: { id: StepId; label: string }[] = [
+  { id: 'mode', label: 'Choose a mode' },
   { id: 'export', label: 'Export from Connect' },
   { id: 'file', label: 'Choose your file' },
   { id: 'check', label: 'Check' },

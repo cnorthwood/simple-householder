@@ -5,11 +5,12 @@ import { CheckStep } from './CheckStep';
 import { DownloadStep } from './DownloadStep';
 import { ExportStep } from './ExportStep';
 import { FileStep } from './FileStep';
+import { ModeStep } from './ModeStep';
 import { Footer } from './Footer';
 import { StepIndicator, STEPS, type StepId } from './StepIndicator';
 
 export function App() {
-  const [step, setStep] = useState<StepId>('export');
+  const [step, setStep] = useState<StepId>('mode');
   const [parsed, setParsed] = useState<ParsedExport | null>(null);
   const [options, setOptions] = useState<HouseholdOptions>(DEFAULT_OPTIONS);
   const mainRef = useRef<HTMLElement>(null);
@@ -29,7 +30,15 @@ export function App() {
 
   const startAgain = () => {
     setParsed(null);
-    setOptions(DEFAULT_OPTIONS);
+    setOptions({ ...DEFAULT_OPTIONS, mode: options.mode });
+    setStep('mode');
+  };
+
+  const chooseMode = (mode: HouseholdOptions['mode']) => {
+    if (mode !== options.mode) {
+      setParsed(null);
+      setOptions({ ...DEFAULT_OPTIONS, mode });
+    }
     setStep('export');
   };
 
@@ -39,15 +48,23 @@ export function App() {
         <div class="container">
           <h1>Simple Householder</h1>
           <p class="tagline">
-            One letter per household, with every elector named, ready for your printer.
+            One letter per household, ready for your printer or your delivery round.
           </p>
         </div>
       </header>
       <main class="container" ref={mainRef}>
         <StepIndicator current={step} />
-        {step === 'export' && <ExportStep onNext={() => setStep('file')} />}
+        {step === 'mode' && <ModeStep mode={options.mode} onNext={chooseMode} />}
+        {step === 'export' && (
+          <ExportStep
+            mode={options.mode}
+            onBack={() => setStep('mode')}
+            onNext={() => setStep('file')}
+          />
+        )}
         {step === 'file' && (
           <FileStep
+            mode={options.mode}
             previous={parsed}
             onContinue={() => setStep('check')}
             onBack={() => setStep('export')}

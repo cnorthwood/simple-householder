@@ -30,7 +30,25 @@ function watchNetwork(page: Page) {
   return unexpected;
 }
 
+async function chooseMode(page: Page, mode: RegExp) {
+  await expect(page.getByRole('heading', { name: 'What are you making?' })).toBeVisible();
+  await page.getByRole('radio', { name: mode }).check();
+  await page.getByRole('button', { name: 'Continue' }).click();
+}
+
+async function download(page: Page) {
+  await page.getByRole('button', { name: 'Create my download' }).click();
+  await expect(page.getByRole('heading', { name: 'Download your letters' })).toBeVisible();
+  const password = (await page.getByTestId('password').textContent()) ?? '';
+  expect(password).toMatch(/^[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('link', { name: /Download householded-addresses-.*\.zip/ }).click();
+  const path = await (await downloadPromise).path();
+  return { password, zip: new Uint8Array(await readFile(path)) };
+}
+
 async function runWizard(page: Page) {
+  await chooseMode(page, /General Election/);
   await expect(page.getByRole('heading', { name: 'Export your list from Connect' })).toBeVisible();
   await expect(page.getByText('Choose Export Format “Standard Text”')).toBeVisible();
   await page.getByRole('button', { name: 'I’ve got my .zip file' }).click();
@@ -54,16 +72,7 @@ async function runWizard(page: Page) {
   await page.getByLabel(/Give everyone in a large shared house their own letter/).check();
   await expect(page.getByText('32 people will get 20 letters.')).toBeAttached();
 
-  await page.getByRole('button', { name: 'Create my download' }).click();
-  await expect(page.getByRole('heading', { name: 'Download your letters' })).toBeVisible();
-  const password = (await page.getByTestId('password').textContent()) ?? '';
-  expect(password).toMatch(/^[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
-
-  const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('link', { name: /Download householded-addresses-.*\.zip/ }).click();
-  const download = await downloadPromise;
-  const path = await download.path();
-  return { password, zip: new Uint8Array(await readFile(path)) };
+  return download(page);
 }
 
 async function readZip(zip: Uint8Array, password: string) {
@@ -105,8 +114,47 @@ test('walks through the wizard and downloads an encrypted zip', async ({ page })
   expect(unexpected).toEqual([]);
 });
 
+test('everyday mode sorts by walk and shortens names', async ({ page }) => {
+  await page.goto('/');
+  await chooseMode(page, /Everyday exporting/);
+  await expect(page.getByText(/Customize export/)).toBeVisible();
+  await page.getByRole('button', { name: 'I’ve got my .zip file' }).click();
+  await page.getByLabel(/Choose file/).setInputFiles({
+    name: 'StandardText20261112-2.zip',
+    mimeType: 'application/zip',
+    buffer: await connectZip('synthetic-everyday.tsv'),
+  });
+  await expect(page.getByText('16 people will get 10 letters.')).toBeAttached();
+  await expect(page.getByText(/can’t be sent as Royal Mail candidate mail/)).toBeVisible();
+  await expect(page.getByText('6 people had no walk in Connect')).toBeVisible();
+  await expect(page.getByText('Christopher & Megan Ashworth')).toBeVisible();
+
+  const { password, zip } = await download(page);
+  const files = await readZip(zip, password);
+  const csv = files['addresses-by-walk.csv'] ?? '';
+  const lines = csv.trim().split('\r\n');
+  expect(lines).toHaveLength(11);
+  expect(lines[1]).toContain('Christopher & Megan Ashworth');
+  expect(lines[1]).toContain('9A 01 Larkspur Road,9A,1; 2');
+  expect(lines[10]).toContain('9B (no walk)');
+});
+
+test('everyday mode asks for the customised export if given a standard one', async ({ page }) => {
+  await page.goto('/');
+  await chooseMode(page, /Everyday exporting/);
+  await page.getByRole('button', { name: 'I’ve got my .zip file' }).click();
+  await page.getByLabel(/Choose file/).setInputFiles({
+    name: 'StandardText20261112-1.zip',
+    mimeType: 'application/zip',
+    buffer: await connectZip(),
+  });
+  await expect(page.getByRole('alert')).toContainText('DefaultWalkName');
+  await expect(page.getByRole('alert')).toContainText('customise your export');
+});
+
 test('explains when the wrong file is chosen', async ({ page }) => {
   await page.goto('/');
+  await chooseMode(page, /General Election/);
   await page.getByRole('button', { name: 'I’ve got my .zip file' }).click();
   await page.getByLabel(/Choose file/).setInputFiles({
     name: 'holiday.txt',

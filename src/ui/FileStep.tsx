@@ -1,8 +1,10 @@
 import { useState } from 'preact/hooks';
 import { FriendlyError } from '../core/errors';
 import { readExportFile, type ParsedExport } from '../core/parseExport';
+import type { Mode } from '../core/types';
 
 interface Props {
+  mode: Mode;
   /** The file already read, if the user came back to this step. */
   previous: ParsedExport | null;
   onContinue: () => void;
@@ -10,7 +12,7 @@ interface Props {
   onLoaded: (parsed: ParsedExport) => void;
 }
 
-export function FileStep({ previous, onContinue, onBack, onLoaded }: Props) {
+export function FileStep({ mode, previous, onContinue, onBack, onLoaded }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -20,7 +22,7 @@ export function FileStep({ previous, onContinue, onBack, onLoaded }: Props) {
     setError(null);
     setBusy(true);
     try {
-      onLoaded(await readExportFile(file.name, new Uint8Array(await file.arrayBuffer())));
+      onLoaded(await readExportFile(file.name, new Uint8Array(await file.arrayBuffer()), mode));
     } catch (e) {
       setError(
         e instanceof FriendlyError

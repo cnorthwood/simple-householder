@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { buildDownload } from '../core/download';
+import { buildDownload, EVERYDAY_FILE, PRINTER_FILE } from '../core/download';
 import type { HouseholdOptions, HouseholdResult } from '../core/household';
 import type { ParsedExport } from '../core/parseExport';
 import { generatePassword } from '../core/password/password';
@@ -78,7 +78,11 @@ export function DownloadStep({ parsed, result, options, onBack, onStartAgain }: 
       <h3>What to do next</h3>
       <ol class="instructions">
         <li>
-          <strong>Email the .zip file to your printer.</strong>
+          <strong>
+            {options.mode === 'everyday'
+              ? 'Only share the .zip file with people who need it.'
+              : 'Email the .zip file to your printer.'}
+          </strong>
           <p>Never email the addresses unprotected.</p>
         </li>
         <li>
@@ -92,7 +96,8 @@ export function DownloadStep({ parsed, result, options, onBack, onStartAgain }: 
       </ol>
       <p class="muted">
         To open the file yourself (for example, for a mail merge in Affinity), double-click it and
-        enter the password when asked. Inside you’ll find <code>addresses-for-printer.csv</code>, a{' '}
+        enter the password when asked. Inside you’ll find{' '}
+        <code>{options.mode === 'everyday' ? EVERYDAY_FILE : PRINTER_FILE}</code>, a{' '}
         <code>summary.txt</code> and, if anything needs fixing, <code>needs-attention.csv</code>.
       </p>
 

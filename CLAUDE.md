@@ -5,7 +5,8 @@ A browser-only tool for Liberal Democrat campaigners. It takes a voter list expo
 mail per address, with **every elector named in full** as Royal Mail's election mail rules require
 (e.g. "Meg Northwood and Chris Northwood", never "Meg & Chris Northwood" or "The Residents").
 The output is a file for a commercial printer (typically Election Workshop) or an Affinity mail
-merge.
+merge. A second "everyday exporting" mode does the same for hand delivery, with shortened names
+("Chris & Meg Northwood") and letters sorted by walk.
 
 Audience: volunteer campaigners, not data specialists. The tool does one job, and its options are
 **opinionated presets with plain-English explanations**, not raw knobs.

@@ -40,3 +40,27 @@ different for every person, even people at the same address (checked on a whole-
 export: 94,566 people, 94,566 different IDs), so it can't be used to find households.
 
 `fixtures/` holds synthetic files in this format. Never add a real export.
+
+## Everyday exporting
+
+Everyday mode needs Standard Text customised with walk and polling number fields (EV-1).
+
+1. Build your list in Connect and click **Export**.
+2. Choose Export Format **Standard Text**, then click **Customize export**.
+3. Change the fields to export to: Voter File VANID, Name, Postal Address, Voting Address
+   (Concatenated), Default Walk, Polling Number. Other fields can be added; they're kept.
+4. Optionally choose **Save as new export format**, so next time it can be picked as the Export
+   Format.
+5. Choose Export As **Excel (.xls)**, then download the `.zip` from **My Export Files**.
+
+Connect expands these fields into columns. A whole-constituency export had exactly the Standard
+Text name and address columns (minus `PreferredEmail` and `Pref Phone`) plus:
+
+| Column                    | Example         | Notes                                                            |
+| ------------------------- | --------------- | ---------------------------------------------------------------- |
+| `DefaultWalkName`         | `9A 12 High St` | Blank for about a third of people. Can contain commas.           |
+| `PollingDistrictCode`     | `9A`            | Walks never cross polling districts.                             |
+| `ElectorNumberWithSuffix` | `123 `, `123/1` | A trailing space when there's no suffix. `/n` marks a new entry. |
+
+The postal address (`mAddressLine1–3`, `mCity`, `mPostalCode`) matched the voting address for
+everyone, so it's dropped along with `MiddleName` and `VAddressID` (EV-2).
