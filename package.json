@@ -6,7 +6,7 @@
   "description": "Household a Connect (NGP VAN) export into Royal Mail-compliant addressed candidate mail, entirely in the browser.",
   "license": "AGPL-3.0-or-later",
   "engines": {
-    "node": ">=22.23.4"
+    "node": ">=26.13.0"
   },
   "scripts": {
     "dev": "vite",
